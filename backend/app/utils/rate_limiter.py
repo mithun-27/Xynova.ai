@@ -25,4 +25,4 @@ class RateLimiter:
 
 # Global limiters
 default_limiter = RateLimiter(requests_per_minute=20)
-ai_gen_limiter = RateLimiter(requests_per_minute=5)
+ai_gen_limiter = RateLimiter(requests_per_minute=10)
