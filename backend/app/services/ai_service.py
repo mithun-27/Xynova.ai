@@ -23,15 +23,12 @@ class AIService:
     @staticmethod
     async def generate_roadmap(topic: str) -> Roadmap:
         prompt = f"""
-        Generate a structured learning roadmap for the topic: "{topic}".
-        Return a JSON object only. Structure:
+        Generate a learning roadmap for: "{topic}".
+        Format as JSON only.
         {{
             "topic": "{topic}",
             "units": [
-                {{
-                    "title": "Unit Title",
-                    "lessons": ["Lesson 1 Title", "Lesson 2 Title"]
-                }}
+                {{ "title": "Unit name", "lessons": ["L1 name", "L2 name"] }}
             ]
         }}
         """
@@ -113,16 +110,11 @@ class AIService:
     @staticmethod
     async def generate_lesson_content(topic: str, lesson_title: str) -> str:
         prompt = f"""
-        Write a detailed educational lesson about '{lesson_title}' in the context of '{topic}'.
-        
-        STRICT FORMATTING RULES:
-        1. Use Markdown for headings, lists, and tables.
-        2. TABLES: 
-           - Every table must have a header row and a separator row (|---|---|).
-           - Do NOT use list markers (e.g., "1. ") or markdown headers (e.g., "#") INSIDE table headers.
-           - Ensure every row has the SAME number of columns/pipes.
-        3. HEADINGS: Use # for main titles and ## or ### for sub-sections.
-        4. SPACING: Ensure a blank line before and after tables and code blocks.
+        Lesson: "{lesson_title}" (Topic: "{topic}").
+        Format: Clean Markdown only.
+        Required: Use '##' headers, standard markdown tables (balanced pipes), and bold terms.
+        Content: Comprehensive and structured for learning.
+        Output only markdown.
         """
         payload = {
             "model": settings.AI_MODEL,
