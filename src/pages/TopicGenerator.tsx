@@ -38,26 +38,32 @@ const TopicGenerator = () => {
   const pollTask = async (taskId: string, topicName: string) => {
     const interval = setInterval(async () => {
       try {
-        const status = await api.getTaskStatus(taskId);
-        if (status.status === "SUCCESS") {
+        const response = await api.getTaskStatus(taskId);
+        if (response.status === "SUCCESS") {
           clearInterval(interval);
           setLoading(false);
           toast.success("Roadmap generated!");
-          fetchTopics();
-          // Load the roadmap from the result or fetch it
-          const res = await api.getTopics();
-          const newTopic = res.find(t => t.title === topicName);
-          if (newTopic) navigate(`/roadmap/${newTopic.id}`);
-        } else if (status.status === "FAILURE") {
+          
+          // Navigate directly using topic_id from result
+          if (response.result?.topic_id) {
+            navigate(`/roadmap/${response.result.topic_id}`);
+          } else {
+            // Fallback: fetch all topics
+            const res = await api.getTopics();
+            const newTopic = res.find(t => t.title.toLowerCase() === topicName.toLowerCase());
+            if (newTopic) navigate(`/roadmap/${newTopic.id}`);
+            else fetchTopics();
+          }
+        } else if (response.status === "FAILURE") {
           clearInterval(interval);
           setLoading(false);
-          toast.error("Generation failed");
+          toast.error("Generation failed: " + (response.result || "Unknown error"));
         }
       } catch (err) {
         clearInterval(interval);
         setLoading(false);
       }
-    }, 3000);
+    }, 1500); // 1.5s is a good balance
   };
 
   const generate = async () => {
