@@ -8,15 +8,23 @@ from app.models.quiz import Quiz, QuizQuestion
 from sqlalchemy import select
 
 def run_async(coro):
-    loop = asyncio.get_event_loop()
-    return loop.run_until_complete(coro)
+    try:
+        return asyncio.run(coro)
+    except RuntimeError:
+        # Fallback for already running loop
+        loop = asyncio.get_event_loop()
+        return loop.run_until_complete(coro)
 
 @celery_app.task(name="generate_roadmap_task")
 def generate_roadmap_task(user_id: int, topic_title: str):
     async def _logic():
+        from app.core.config import logger
+        logger.info(f"START: generate_roadmap_task for topic '{topic_title}'")
         async with AsyncSessionLocal() as db:
             # 1. Generate the roadmap structure via AI
+            logger.info("Calling AI service for roadmap...")
             roadmap = await ai_service.generate_roadmap(topic_title)
+            logger.info("AI response received.")
             
             # 2. Create the Topic record
             new_topic = Topic(
@@ -25,7 +33,8 @@ def generate_roadmap_task(user_id: int, topic_title: str):
                 roadmap_graph={} # Placeholder
             )
             db.add(new_topic)
-            await db.flush() # Get the ID
+            await db.flush()
+            logger.info(f"Topic created with ID: {new_topic.id}")
             
             # 3. Generate default roadmap_graph
             nodes = []
@@ -86,7 +95,9 @@ def generate_roadmap_task(user_id: int, topic_title: str):
                     current_order += 1
             
             new_topic.roadmap_graph = {"nodes": nodes, "edges": edges}
+            logger.info("Committing data to DB...")
             await db.commit()
+            logger.info(f"SUCCESS: generate_roadmap_task completed for ID {new_topic.id}")
             return {"topic_id": new_topic.id, "roadmap": roadmap.model_dump()}
 
     return run_async(_logic())
