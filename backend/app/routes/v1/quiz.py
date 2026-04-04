@@ -4,7 +4,8 @@ from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 from app.schemas.quiz import Quiz as QuizSchema
 from app.schemas.task import TaskResponse
-from app.workers.tasks import generate_quiz_task
+from app.workers.async_runner import submit_task
+from app.workers.async_tasks import run_generate_quiz
 from app.routes.v1.auth import get_current_user
 from app.models.lesson import Lesson
 from app.models.user import User
@@ -23,8 +24,8 @@ async def generate_quiz(
     if not lesson:
         raise HTTPException(status_code=404, detail="Lesson not found")
     
-    task = generate_quiz_task.delay(lesson_id)
-    return {"task_id": task.id, "status": "PENDING"}
+    task_id = submit_task(run_generate_quiz(lesson_id))
+    return {"task_id": task_id, "status": "PENDING"}
 
 @router.get("/{lesson_id}", response_model=Optional[QuizSchema])
 async def get_quiz(

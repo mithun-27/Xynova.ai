@@ -33,3 +33,12 @@ class Roadmap(BaseModel):
     topic: str
     units: List[RoadmapUnit]
     roadmap_graph: Optional[dict] = None
+
+# Schema for parsing raw AI responses (lessons are plain strings)
+class AIRoadmapUnit(BaseModel):
+    title: str
+    lessons: List[str]
+
+class AIRoadmap(BaseModel):
+    topic: str
+    units: List[AIRoadmapUnit]

@@ -2,7 +2,7 @@ import json
 import re
 import httpx
 from app.core.config import settings
-from app.schemas.topic import Roadmap
+from app.schemas.topic import AIRoadmap
 from app.schemas.quiz import QuizQuestionBase
 from typing import List, Optional
 
@@ -21,7 +21,7 @@ class AIService:
             return response.json()
 
     @staticmethod
-    async def generate_roadmap(topic: str) -> Roadmap:
+    async def generate_roadmap(topic: str) -> AIRoadmap:
         prompt = f"""
         Generate a learning roadmap for: "{topic}".
         Format as JSON only.
@@ -39,7 +39,7 @@ class AIService:
         }
         data = await AIService._post_request(payload)
         content = data['choices'][0]['message']['content']
-        return Roadmap.model_validate_json(content)
+        return AIRoadmap.model_validate_json(content)
 
     @staticmethod
     def normalize_markdown(content: str) -> str:

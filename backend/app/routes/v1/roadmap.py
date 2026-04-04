@@ -1,7 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException
 from app.schemas.topic import TopicCreate, Topic as TopicSchema, Roadmap, TopicUpdate, RoadmapConfirmRequest
 from app.schemas.task import TaskResponse
-from app.workers.tasks import generate_roadmap_task
+from app.workers.async_runner import submit_task
+from app.workers.async_tasks import run_generate_roadmap, run_generate_lesson
 from app.routes.v1.auth import get_current_user
 from app.models.user import User
 from app.models.topic import Topic
@@ -24,8 +25,8 @@ async def generate_roadmap(
     current_user: User = Depends(get_current_user)
 ):
     try:
-        task = generate_roadmap_task.delay(current_user.id, topic_in.topic)
-        return {"task_id": task.id, "status": "PENDING"}
+        task_id = submit_task(run_generate_roadmap(current_user.id, topic_in.topic))
+        return {"task_id": task_id, "status": "PENDING"}
     except Exception as e:
         logger.exception(f"Error starting roadmap task: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -61,8 +62,6 @@ async def confirm_roadmap(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    from app.workers.tasks import generate_lesson_task, generate_quiz_task
-    
     topic = await db.get(Topic, topic_id)
     if not topic or topic.user_id != current_user.id:
         raise HTTPException(status_code=404, detail="Topic not found")
@@ -97,7 +96,7 @@ async def confirm_roadmap(
             
             # Trigger generation task if content is empty
             if not lesson.content:
-                generate_lesson_task.delay(lesson.id)
+                submit_task(run_generate_lesson(lesson.id))
                 lessons_triggered += 1
         
         updated_nodes.append(node)

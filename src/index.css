@@ -160,4 +160,18 @@
   .glow {
     box-shadow: var(--shadow-glow);
   }
+
+  .roadmap-scroll::-webkit-scrollbar {
+    width: 6px;
+  }
+  .roadmap-scroll::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .roadmap-scroll::-webkit-scrollbar-thumb {
+    background: hsl(var(--border));
+    border-radius: 3px;
+  }
+  .roadmap-scroll::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground) / 0.3);
+  }
 }
