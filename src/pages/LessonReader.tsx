@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { MessageSquare, Sparkles, BookOpen, CheckCircle2, Loader2, ArrowLeft } from "lucide-react";
+import { MessageSquare, Sparkles, BookOpen, CheckCircle2, Loader2, ArrowLeft, RotateCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Link, useParams, useNavigate } from "react-router-dom";
@@ -17,38 +17,46 @@ const LessonReader = () => {
   const [loading, setLoading] = useState(true);
   const [completed, setCompleted] = useState(false);
   const [marking, setMarking] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [regenerating, setRegenerating] = useState(false);
 
+  const handleRegenerate = async () => {
+    if (!lessonId) return;
+    setRegenerating(true);
+    try {
+      toast.info("Regenerating lesson with improved formatting...");
+      const data = await api.regenerateLesson(parseInt(lessonId));
+      setLesson(data);
+      toast.success("Lesson regenerated successfully! ✨");
+    } catch (err: any) {
+      toast.error(err?.message || "Failed to regenerate lesson");
+    } finally {
+      setRegenerating(false);
+    }
+  };
+
+  const fetchLesson = async () => {
+    if (!lessonId) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await api.getLesson(parseInt(lessonId));
+      // Check if response has an error field (503 from backend)
+      if ((data as any).error) {
+        setError((data as any).error);
+        setLesson(data);
+      } else {
+        setLesson(data);
+      }
+    } catch (err: any) {
+      setError(err?.message || "Failed to load lesson. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    let intervalId: NodeJS.Timeout;
-
-    const fetchLesson = async () => {
-      if (!lessonId) return;
-      try {
-        const data = await api.getLesson(parseInt(lessonId));
-        setLesson(data);
-        setLoading(false);
-
-        // If content is still missing, poll every 5 seconds
-        if (!data.content) {
-          intervalId = setInterval(async () => {
-            const pollData = await api.getLesson(parseInt(lessonId));
-            if (pollData.content) {
-              setLesson(pollData);
-              clearInterval(intervalId);
-            }
-          }, 5000);
-        }
-      } catch (err) {
-        toast.error("Failed to load lesson content");
-        setLoading(false);
-      }
-    };
-
     fetchLesson();
-    return () => {
-      if (intervalId) clearInterval(intervalId);
-    };
   }, [lessonId]);
 
   const handleToggleComplete = async () => {
@@ -66,12 +74,42 @@ const LessonReader = () => {
     }
   };
 
-  if (loading || (lesson && !lesson.content)) {
+  if (loading) {
     return (
       <DashboardLayout>
         <div className="h-screen w-full flex flex-col items-center justify-center space-y-4">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <p className="text-sm text-muted-foreground font-medium italic">Engineering your lesson content...</p>
+          <div className="relative">
+            <div className="absolute inset-0 bg-primary/20 blur-[60px] rounded-full animate-pulse" />
+            <Loader2 className="h-10 w-10 animate-spin text-primary relative z-10" />
+          </div>
+          <p className="text-sm text-muted-foreground font-medium">Generating your lesson...</p>
+          <p className="text-xs text-muted-foreground/50">Usually takes 10-30 seconds</p>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (error || (lesson && !lesson.content)) {
+    return (
+      <DashboardLayout>
+        <div className="h-screen w-full flex flex-col items-center justify-center space-y-6 px-4">
+          <div className="text-center space-y-3">
+            <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center mx-auto">
+              <BookOpen className="h-7 w-7 text-destructive" />
+            </div>
+            <h2 className="text-lg font-bold">Couldn't generate lesson</h2>
+            <p className="text-sm text-muted-foreground max-w-md">
+              {error || "The AI service is temporarily busy. This is normal with free-tier models."}
+            </p>
+          </div>
+          <div className="flex gap-3">
+            <Button onClick={fetchLesson} className="bg-gradient-to-r from-purple-600 to-violet-600 text-white font-bold rounded-xl shadow-lg">
+              <Sparkles className="h-4 w-4 mr-2" /> Try Again
+            </Button>
+            <Button variant="outline" onClick={() => navigate(-1)} className="rounded-xl">
+              <ArrowLeft className="h-4 w-4 mr-2" /> Go Back
+            </Button>
+          </div>
         </div>
       </DashboardLayout>
     );
@@ -105,6 +143,16 @@ const LessonReader = () => {
                     <ArrowLeft className="h-4 w-4 mr-2" /> Back
                 </Button>
                 <div className="flex gap-2">
+                    <Button 
+                        size="sm" 
+                        variant="outline" 
+                        className="h-9 border-primary/10 hover:bg-primary/5"
+                        onClick={handleRegenerate}
+                        disabled={regenerating || loading}
+                    >
+                        <RotateCw className={`h-4 w-4 mr-2 text-primary ${regenerating ? 'animate-spin' : ''}`} /> 
+                        {regenerating ? "Regenerating..." : "Regenerate"}
+                    </Button>
                     <Button 
                         size="sm" 
                         variant="outline" 
@@ -150,17 +198,54 @@ const LessonReader = () => {
                 {/* Markdown Content */}
                 <div className="prose prose-lg dark:prose-invert max-w-none
                     prose-headings:font-bold prose-headings:tracking-tight
-                    prose-p:text-muted-foreground prose-p:leading-relaxed
-                    prose-strong:text-foreground prose-strong:font-bold
+                    prose-p:text-muted-foreground prose-p:leading-relaxed prose-p:my-4
+                    prose-strong:text-foreground prose-strong:font-semibold
                     prose-code:bg-muted/50 prose-code:text-primary prose-code:px-2 prose-code:py-0.5 prose-code:rounded-lg prose-code:text-[0.9em] prose-code:before:content-none prose-code:after:content-none
                     prose-pre:bg-[#0d1117] prose-pre:border prose-pre:border-border/50 prose-pre:rounded-2xl prose-pre:p-6 prose-pre:shadow-xl
-                    prose-li:text-muted-foreground
+                    prose-li:text-muted-foreground prose-li:my-1
+                    prose-ul:my-4 prose-ol:my-4
                     prose-img:rounded-2xl prose-img:shadow-2xl
-                    prose-hr:border-border/50
+                    prose-hr:border-border/50 prose-hr:my-8
+                    prose-blockquote:border-primary/40 prose-blockquote:bg-primary/5 prose-blockquote:rounded-xl prose-blockquote:py-1 prose-blockquote:px-5 prose-blockquote:not-italic
                 ">
                     <ReactMarkdown 
                         remarkPlugins={[remarkGfm]}
                         components={{
+                            h2: ({ children }) => (
+                                <h2 className="text-2xl font-extrabold mt-10 mb-4 pb-2 border-b border-border/30 text-foreground flex items-center gap-2">
+                                    {children}
+                                </h2>
+                            ),
+                            h3: ({ children }) => (
+                                <h3 className="text-lg font-bold mt-8 mb-3 text-foreground/90">
+                                    {children}
+                                </h3>
+                            ),
+                            p: ({ children }) => (
+                                <p className="text-muted-foreground leading-relaxed my-4 text-[15px]">
+                                    {children}
+                                </p>
+                            ),
+                            ul: ({ children }) => (
+                                <ul className="my-4 space-y-2 list-disc list-inside marker:text-primary/60">
+                                    {children}
+                                </ul>
+                            ),
+                            ol: ({ children }) => (
+                                <ol className="my-4 space-y-2 list-decimal list-inside marker:text-primary/60 marker:font-bold">
+                                    {children}
+                                </ol>
+                            ),
+                            li: ({ children }) => (
+                                <li className="text-muted-foreground text-[15px] leading-relaxed pl-1">
+                                    {children}
+                                </li>
+                            ),
+                            blockquote: ({ children }) => (
+                                <blockquote className="my-6 border-l-4 border-primary/40 bg-primary/5 rounded-r-xl py-3 px-5 text-muted-foreground not-italic">
+                                    {children}
+                                </blockquote>
+                            ),
                             table: ({ children }) => (
                                 <div className="my-10 w-full overflow-x-auto rounded-3xl border border-border/40 bg-card/40 backdrop-blur-xl shadow-2xl">
                                     <table className="w-full border-collapse text-sm min-w-[600px]">
@@ -188,9 +273,10 @@ const LessonReader = () => {
                                     href={href} 
                                     target="_blank" 
                                     rel="noopener noreferrer"
-                                    className="text-primary hover:text-primary underline decoration-primary/30 underline-offset-4 font-bold transition-all hover:decoration-primary"
+                                    className="text-primary hover:text-primary/80 underline decoration-primary/30 underline-offset-4 font-semibold transition-all hover:decoration-primary inline-flex items-center gap-1"
                                 >
                                     {children}
+                                    <svg className="w-3 h-3 opacity-50 inline-block flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
                                 </a>
                             ),
                             code: ({ className, children }) => {

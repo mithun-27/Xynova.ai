@@ -37,3 +37,6 @@ __pycache__/
 # Databases
 pg_data/
 redis_data/
+
+# Temporary
+backend/tmp/

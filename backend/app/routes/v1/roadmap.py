@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from app.schemas.topic import TopicCreate, Topic as TopicSchema, Roadmap, TopicUpdate, RoadmapConfirmRequest
 from app.schemas.task import TaskResponse
 from app.workers.async_runner import submit_task
-from app.workers.async_tasks import run_generate_roadmap, run_generate_lesson
+from app.workers.async_tasks import run_generate_roadmap
 from app.routes.v1.auth import get_current_user
 from app.models.user import User
 from app.models.topic import Topic
@@ -70,9 +70,9 @@ async def confirm_roadmap(
     topic.roadmap_graph = confirm_in.roadmap_graph
     await db.commit()
     
-    # Identify lesson nodes and trigger generation
+    # Identify lesson nodes and create DB records (content generated on-demand when user opens them)
     nodes = confirm_in.roadmap_graph.get("nodes", [])
-    lessons_triggered = 0
+    lessons_created = 0
     
     updated_nodes = []
     for node in nodes:
@@ -88,16 +88,12 @@ async def confirm_roadmap(
                 lesson = Lesson(topic_id=topic_id, title=lesson_title)
                 db.add(lesson)
                 await db.flush()
+                lessons_created += 1
             
             # Backfill lessonId into node data
             if "data" not in node:
                 node["data"] = {}
             node["data"]["lessonId"] = lesson.id
-            
-            # Trigger generation task if content is empty
-            if not lesson.content:
-                submit_task(run_generate_lesson(lesson.id))
-                lessons_triggered += 1
         
         updated_nodes.append(node)
                 
@@ -107,7 +103,7 @@ async def confirm_roadmap(
         "edges": confirm_in.roadmap_graph.get("edges", [])
     }
     await db.commit()
-    return {"message": f"Roadmap confirmed! Architecting {lessons_triggered} lessons and related content..."}
+    return {"message": f"Roadmap confirmed! {lessons_created} lessons ready. Click any lesson to start learning!"}
 
 @router.get("/{topic_id}", response_model=Roadmap)
 async def get_roadmap(

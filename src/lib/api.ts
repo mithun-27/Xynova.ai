@@ -154,6 +154,12 @@ class ApiClient {
     });
   }
 
+  async regenerateLesson(lessonId: number): Promise<Lesson> {
+    return this.request(`/lesson/${lessonId}/regenerate`, {
+      method: "POST"
+    });
+  }
+
   async updateRoadmapGraph(topicId: number, nodes: any[], edges: any[]): Promise<Topic> {
     return this.request(`/roadmap/${topicId}/graph`, {
       method: "PATCH",
