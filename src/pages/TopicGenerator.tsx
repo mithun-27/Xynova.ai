@@ -132,163 +132,186 @@ const TopicGenerator = () => {
 
   return (
     <DashboardLayout>
-      <div className="p-6 max-w-5xl mx-auto space-y-12">
+      <div className="p-6 max-w-5xl mx-auto min-h-[calc(100vh-8rem)] flex flex-col justify-center">
         {/* Topic Generator Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
-            <div>
-              <h1 className="text-3xl font-bold mb-2">Topic Generator</h1>
-              <p className="text-muted-foreground text-sm">Enter any subject or upload a document, and Xynova.ai will engineer a custom learning path.</p>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+          <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
+            <div className="space-y-3">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-[10px] font-bold uppercase tracking-widest">
+                <Sparkles className="h-3 w-3" /> AI Powered
+              </div>
+              <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl bg-clip-text text-transparent bg-gradient-to-r from-foreground via-foreground/80 to-foreground/60">
+                Roadmap <br />Architect
+              </h1>
+              <p className="text-muted-foreground text-lg leading-relaxed max-w-md">
+                Enter any subject or upload a document, and our AI will engineer a custom professional learning path for you.
+              </p>
             </div>
 
-            <div className="space-y-4">
-              <div className="glass-card p-2 rounded-xl border border-primary/10 shadow-lg shadow-primary/5 flex gap-3">
+            <div className="space-y-5">
+              <div className="glass-card p-2.5 rounded-2xl border border-primary/20 shadow-2xl shadow-primary/5 flex gap-3 backdrop-blur-xl">
                 <Input
-                  placeholder={uploadedFile ? "Generate from uploaded document..." : "e.g. Astrophysics, Digital Marketing..."}
+                  placeholder={uploadedFile ? "Ready to generate from document..." : "What do you want to learn today?"}
                   value={topic}
-                  disabled={!!uploadedFile}
+                  disabled={!!uploadedFile || loading}
                   onChange={e => setTopic(e.target.value)}
                   onKeyDown={e => e.key === "Enter" && generate()}
-                  className="flex-1 bg-transparent border-0 focus-visible:ring-0 text-base"
+                  className="flex-1 bg-transparent border-0 focus-visible:ring-0 text-lg py-6"
                 />
-                <Button onClick={generate} disabled={loading || (!topic.trim() && !uploadedFile)} className="gradient-bg border-0 text-primary-foreground font-bold px-6 h-11 shadow-lg shadow-purple-500/20">
-                  {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Sparkles className="h-4 w-4 mr-2" /> Generate</>}
+                <Button 
+                    onClick={generate} 
+                    disabled={loading || (!topic.trim() && !uploadedFile)} 
+                    className="gradient-bg border-0 text-primary-foreground font-black px-8 h-auto rounded-xl shadow-xl shadow-purple-500/20 active:scale-95 transition-all"
+                >
+                  {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <><Sparkles className="h-5 w-5 mr-2" /> Architect</>}
                 </Button>
               </div>
 
               {uploadedFile && (
-                <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="flex items-center gap-3 p-3 rounded-xl bg-primary/5 border border-primary/20">
-                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                    <CheckCircle2 className="h-5 w-5 text-primary" />
+                <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="flex items-center gap-4 p-4 rounded-2xl bg-primary/10 border border-primary/20 shadow-lg">
+                  <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center">
+                    <CheckCircle2 className="h-6 w-6 text-primary" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-bold truncate">{uploadedFile.name}</p>
-                    <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">{uploadedFile.size} • document analyzed</p>
+                    <p className="text-[10px] text-primary font-bold uppercase tracking-widest">Analysis Complete • {uploadedFile.size}</p>
                   </div>
-                  <Button variant="ghost" size="icon" onClick={removeFile} className="h-8 w-8 hover:bg-destructive/10 hover:text-destructive">
-                    <X className="h-4 w-4" />
+                  <Button variant="ghost" size="icon" onClick={removeFile} className="h-10 w-10 hover:bg-destructive/10 hover:text-destructive rounded-xl">
+                    <X className="h-5 w-5" />
                   </Button>
                 </motion.div>
               )}
+
+              <div className="flex items-center gap-6 pt-2">
+                <div className="flex -space-x-3">
+                  {[1, 2, 3, 4].map((i) => (
+                    <div key={i} className="w-8 h-8 rounded-full border-2 border-background bg-muted flex items-center justify-center overflow-hidden">
+                      <img src={`https://i.pravatar.cc/100?u=${i}`} alt="User" />
+                    </div>
+                  ))}
+                </div>
+                <p className="text-[11px] text-muted-foreground font-medium italic">
+                  Join 10,000+ students mastering <br /> new skills with AI roadmaps.
+                </p>
+              </div>
             </div>
           </motion.div>
 
           {/* Upload Area */}
-          <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1 }}>
+          <motion.div initial={{ opacity: 0, x: 25 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.15 }}>
             {!uploadedFile && !uploading ? (
               <label className="group relative block cursor-pointer">
                 <input type="file" className="hidden" accept=".pdf,.doc,.docx" onChange={handleFileUpload} />
-                <div className="glass-card p-10 rounded-3xl border-2 border-dashed border-border/50 group-hover:border-primary/50 transition-all text-center space-y-4 bg-muted/5 group-hover:bg-primary/5">
-                  <div className="w-16 h-16 rounded-2xl bg-primary/5 border border-primary/10 flex items-center justify-center mx-auto group-hover:scale-110 transition-transform group-hover:shadow-xl group-hover:shadow-primary/10">
-                    <Upload className="h-8 w-8 text-primary/60 group-hover:text-primary transition-colors" />
+                <div className="glass-card p-12 rounded-[2.5rem] border-2 border-dashed border-border/50 group-hover:border-primary/50 transition-all text-center space-y-6 bg-muted/5 group-hover:bg-primary/5 hover:shadow-2xl hover:shadow-primary/5">
+                  <div className="w-20 h-20 rounded-3xl bg-primary/5 border border-primary/10 flex items-center justify-center mx-auto group-hover:scale-110 transition-transform group-hover:rotate-3 group-hover:shadow-2xl group-hover:shadow-primary/20">
+                    <Upload className="h-10 w-10 text-primary/60 group-hover:text-primary transition-colors" />
                   </div>
-                  <div className="space-y-1">
-                    <h3 className="font-bold text-lg">Upload Your Content</h3>
-                    <p className="text-xs text-muted-foreground max-w-[200px] mx-auto">Drop your PDF or DOCX here to generate a tailored roadmap from your book.</p>
+                  <div className="space-y-2">
+                    <h3 className="font-bold text-xl">Drop Your Content</h3>
+                    <p className="text-sm text-muted-foreground max-w-[240px] mx-auto leading-relaxed">Upload a syllabus, textbook, or notes to generate a tailored path.</p>
                   </div>
                   <div className="flex items-center justify-center gap-3">
-                    <span className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest bg-muted rounded-md px-2 py-1">PDF</span>
-                    <span className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest bg-muted rounded-md px-2 py-1">DOCX</span>
+                    <span className="text-[11px] font-bold text-muted-foreground/60 uppercase tracking-[0.2em] bg-muted/50 border border-border/50 rounded-lg px-3 py-1.5">PDF</span>
+                    <span className="text-[11px] font-bold text-muted-foreground/60 uppercase tracking-[0.2em] bg-muted/50 border border-border/50 rounded-lg px-3 py-1.5">DOCX</span>
                   </div>
                 </div>
               </label>
             ) : uploading ? (
-              <div className="glass-card p-10 rounded-3xl border border-primary/20 bg-primary/5 space-y-6 text-center shadow-2xl shadow-primary/5">
-                <div className="relative w-20 h-20 mx-auto">
+              <div className="glass-card p-12 rounded-[2.5rem] border border-primary/20 bg-primary/5 space-y-8 text-center shadow-2xl shadow-primary/10 backdrop-blur-3xl">
+                <div className="relative w-24 h-24 mx-auto">
                   <div className="absolute inset-0 rounded-full border-4 border-primary/10" />
                   <motion.div
                     initial={{ rotate: 0 }}
                     animate={{ rotate: 360 }}
-                    transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                    className="absolute inset-0 rounded-full border-4 border-transparent border-t-primary"
+                    transition={{ duration: 2.5, repeat: Infinity, ease: "linear" }}
+                    className="absolute inset-0 rounded-full border-4 border-transparent border-t-primary shadow-[0_0_20px_rgba(var(--primary),0.5)]"
                   />
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <FileText className="h-8 w-8 text-primary" />
+                    <FileText className="h-10 w-10 text-primary" />
                   </div>
                 </div>
-                <div className="space-y-4">
-                  <div className="space-y-1">
-                    <h3 className="font-bold text-lg">Parsing Document...</h3>
-                    <p className="text-xs text-muted-foreground">Extracting core concepts and structuring modules.</p>
-                  </div>
+                <div className="space-y-5">
                   <div className="space-y-2">
-                    <div className="h-2 w-full bg-primary/10 rounded-full overflow-hidden">
+                    <h3 className="font-bold text-2xl">Scanning Knowledge</h3>
+                    <p className="text-sm text-muted-foreground">Identifying structure and key learning outcomes...</p>
+                  </div>
+                  <div className="space-y-3">
+                    <div className="h-2.5 w-full bg-primary/10 rounded-full overflow-hidden border border-primary/10">
                       <motion.div
-                        className="h-full bg-primary"
+                        className="h-full bg-gradient-to-r from-primary to-purple-500"
                         initial={{ width: 0 }}
                         animate={{ width: `${uploadProgress}%` }}
                       />
                     </div>
-                    <p className="text-[10px] font-black tracking-widest text-primary text-right">{uploadProgress}%</p>
+                    <div className="flex justify-between items-center">
+                        <span className="text-[10px] font-black tracking-[0.2em] text-primary uppercase">Analyzing</span>
+                        <span className="text-[11px] font-black tracking-widest text-primary">{uploadProgress}%</span>
+                    </div>
                   </div>
                 </div>
               </div>
             ) : (
-              <div className="glass-card p-10 rounded-3xl border border-emerald-500/20 bg-emerald-500/5 space-y-6 text-center">
-                <div className="w-20 h-20 rounded-full bg-emerald-500/10 flex items-center justify-center mx-auto border border-emerald-500/20">
-                  <CheckCircle2 className="h-10 w-10 text-emerald-500" />
+              <div className="glass-card p-12 rounded-[2.5rem] border border-emerald-500/20 bg-emerald-500/5 space-y-8 text-center shadow-2xl shadow-emerald-500/5">
+                <div className="w-24 h-24 rounded-full bg-emerald-500/10 flex items-center justify-center mx-auto border-2 border-emerald-500/20 shadow-inner group">
+                  <CheckCircle2 className="h-12 w-12 text-emerald-500" />
                 </div>
-                <div className="space-y-2">
-                  <h3 className="font-bold text-lg">Document Ready!</h3>
-                  <p className="text-xs text-muted-foreground">We've indexed "{uploadedFile.name}". Click **Generate** to start your lesson.</p>
+                <div className="space-y-3">
+                  <h3 className="font-bold text-2xl">Knowledge Indexed</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    We've successfully analyzed **{uploadedFile.name}**. Ready to architect your path.
+                  </p>
                 </div>
-                <Button variant="ghost" className="text-emerald-600 hover:bg-emerald-50" onClick={removeFile}>Change Document</Button>
+                <Button variant="outline" className="text-emerald-600 border-emerald-500/20 hover:bg-emerald-500/10 hover:border-emerald-500/40 rounded-xl" onClick={removeFile}>
+                    Wait, let me change that
+                </Button>
               </div>
             )}
           </motion.div>
         </div>
 
-        {!roadmap && !loading && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }} className="space-y-6">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-bold flex items-center gap-2">
-                <BookOpen className="h-5 w-5 text-primary" /> My Recent Topics
-              </h2>
-              <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">View All</Button>
+        {savedTopics.length > 0 && (
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="mt-16 space-y-6 animate-in fade-in slide-in-from-bottom-5"
+          >
+            <div className="flex items-center justify-between border-b border-border/50 pb-4">
+              <div>
+                <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/85">
+                  Recent Roadmaps
+                </h2>
+                <p className="text-muted-foreground text-sm">Pick up where you left off in your learning journeys.</p>
+              </div>
+              <Button variant="ghost" size="sm" onClick={() => navigate("/topics")} className="text-primary font-bold hover:bg-primary/5">
+                View All <ChevronRight className="h-4 w-4 ml-1" />
+              </Button>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {savedTopics.map((item, i) => (
-                <motion.div
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {savedTopics.slice(0, 3).map((item) => (
+                <div
                   key={item.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.1 * i }}
                   onClick={() => navigate(`/roadmap/${item.id}`)}
-                  className="group relative glass-card p-5 cursor-pointer border border-border/50 hover:border-primary/30 transition-all duration-300 hover:shadow-xl hover:shadow-primary/5 overflow-hidden"
+                  className="group relative glass-card p-6 cursor-pointer border border-border/50 hover:border-primary/45 transition-all duration-300 hover:shadow-2xl hover:shadow-primary/5 overflow-hidden rounded-2xl"
                 >
                   <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full -translate-y-12 translate-x-12 blur-2xl group-hover:bg-primary/10 transition-all" />
-
-                  {/* Delete Button */}
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    onClick={(e) => handleDelete(e, item.id)}
-                    className="absolute top-2 right-2 h-8 w-8 rounded-full opacity-0 group-hover:opacity-100 hover:bg-destructive/10 hover:text-destructive z-20 transition-all"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-
-                  <div className="relative z-10 flex flex-col h-full">
-                    <h3 className="font-bold mb-2 group-hover:text-primary transition-colors line-clamp-1">{item.title}</h3>
-                    <div className="text-xs text-muted-foreground mb-4">Course available</div>
-
-                    <div className="mt-auto space-y-3">
-                      <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-wider text-muted-foreground group-hover:text-primary transition-colors">
-                        <span>View Roadmap</span>
-                        <ChevronRight className="h-3 w-3 transition-transform group-hover:translate-x-1" />
-                      </div>
-                      <div className="h-1 w-full bg-muted rounded-full overflow-hidden">
-                        <motion.div
-                          initial={{ width: 0 }}
-                          animate={{ width: `100%` }}
-                          transition={{ duration: 1, delay: 0.5 + (0.1 * i) }}
-                          className="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full"
-                        />
-                      </div>
+                  <div className="relative z-10 flex flex-col h-full space-y-4">
+                    <div className="w-10 h-10 rounded-xl bg-primary/15 flex items-center justify-center group-hover:scale-110 transition-transform">
+                      <BookOpen className="h-5 w-5 text-primary" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-base group-hover:text-primary transition-colors line-clamp-1">
+                        {item.title}
+                      </h3>
+                      <p className="text-xs text-muted-foreground mt-1">Generated {new Date(item.created_at).toLocaleDateString()}</p>
+                    </div>
+                    <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-widest text-muted-foreground group-hover:text-primary transition-colors pt-2">
+                      <span>Resume Journey</span>
+                      <ChevronRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
                     </div>
                   </div>
-                </motion.div>
+                </div>
               ))}
             </div>
           </motion.div>
@@ -296,87 +319,43 @@ const TopicGenerator = () => {
 
         {loading && (
           <motion.div 
-            initial={{ opacity: 0, scale: 0.9 }}
+            initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="relative glass-card p-12 text-center max-w-3xl mx-auto border border-primary/20 bg-primary/5 shadow-2xl shadow-primary/10 overflow-hidden"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-xl p-6"
           >
-            <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full -translate-y-16 translate-x-16 blur-3xl animate-pulse" />
-            <div className="absolute bottom-0 left-0 w-32 h-32 bg-purple-500/10 rounded-full translate-y-16 -translate-x-16 blur-3xl animate-pulse" />
-            
-            <div className="relative z-10">
-              <div className="relative w-16 h-16 mx-auto mb-6">
-                <div className="absolute inset-0 rounded-full border-2 border-primary/20 animate-ping" />
-                <div className="relative rounded-full bg-primary/10 p-4 flex items-center justify-center border border-primary/20">
-                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <div className="relative glass-card p-16 text-center max-w-2xl w-full border border-primary/20 bg-primary/5 shadow-2xl shadow-primary/20 rounded-[3rem] overflow-hidden">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full -translate-y-32 translate-x-32 blur-[100px] animate-pulse" />
+                <div className="absolute bottom-0 left-0 w-64 h-64 bg-purple-500/10 rounded-full translate-y-32 -translate-x-32 blur-[100px] animate-pulse" />
+                
+                <div className="relative z-10 flex flex-col items-center">
+                  <div className="relative w-20 h-20 mb-10">
+                    <div className="absolute inset-0 rounded-full border-2 border-primary/20 animate-ping opacity-20" />
+                    <div className="relative rounded-2xl bg-primary/10 p-5 flex items-center justify-center border border-primary/20 shadow-2xl shadow-primary/20">
+                      <Loader2 className="h-10 w-10 animate-spin text-primary" />
+                    </div>
+                  </div>
+                  
+                  <h3 className="text-3xl font-black mb-4 bg-clip-text text-transparent bg-gradient-to-r from-primary via-purple-400 to-indigo-500 tracking-tight">
+                    Engineering Your Future
+                  </h3>
+                  <p className="text-base text-muted-foreground max-w-[420px] mx-auto italic leading-relaxed font-medium">
+                    Our AI is architecting units, extraction logic, and interactive modules for your specialized journey.
+                  </p>
+                  
+                  <div className="mt-12 flex justify-center gap-2">
+                    {[0, 1, 2, 3, 4].map((i) => (
+                      <motion.div
+                        key={i}
+                        animate={{ y: [0, -10, 0], opacity: [0.3, 1, 0.3], scale: [1, 1.2, 1] }}
+                        transition={{ duration: 1.5, repeat: Infinity, delay: i * 0.15, ease: "easeInOut" }}
+                        className="w-2 h-2 rounded-full bg-primary shadow-[0_0_10px_rgba(var(--primary),0.5)]"
+                      />
+                    ))}
+                  </div>
                 </div>
-              </div>
-              
-              <h3 className="text-2xl font-bold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-primary to-purple-400">
-                Architecting Your Roadmap
-              </h3>
-              <p className="text-sm text-muted-foreground max-w-[400px] mx-auto italic leading-relaxed">
-                Analyzing topic depth, extracting core concepts, and structuring interactive modules for your journey.
-              </p>
-              
-              <div className="mt-8 flex justify-center gap-1.5">
-                {[0, 1, 2, 3].map((i) => (
-                  <motion.div
-                    key={i}
-                    animate={{ y: [0, -6, 0], opacity: [0.3, 1, 0.3] }}
-                    transition={{ duration: 1.2, repeat: Infinity, delay: i * 0.15 }}
-                    className="w-1.5 h-1.5 rounded-full bg-primary"
-                  />
-                ))}
-              </div>
             </div>
           </motion.div>
         )}
-
-        <AnimatePresence>
-          {roadmap && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0 }}
-              className="space-y-6 max-w-3xl"
-            >
-              <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-bold">{roadmap.topic}</h2>
-                <Button variant="outline" size="sm" onClick={() => setRoadmap(null)}>Back to Topics</Button>
-              </div>
-
-              <div className="space-y-4">
-                {roadmap.units.map((unit, ui) => (
-                  <motion.div
-                    key={unit.title}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: ui * 0.1 }}
-                    className="glass-card p-6 border border-border/50 hover:border-primary/20 transition-all"
-                  >
-                    <h3 className="font-bold text-base mb-4 flex items-center gap-3">
-                      <span className="gradient-bg text-primary-foreground text-[10px] font-black uppercase tracking-widest rounded-lg px-2.5 py-1 min-w-[60px] text-center shadow-lg shadow-purple-500/20">Unit {ui + 1}</span>
-                      {unit.title}
-                    </h3>
-                    <div className="grid gap-2">
-                      {unit.lessons.map((lesson, li) => (
-                        <Link key={lesson} to={`/lesson/${ui * 3 + li + 1}`}
-                          className="flex items-center gap-4 p-4 rounded-xl border border-transparent hover:border-border hover:bg-muted/50 transition-all group"
-                        >
-                          <div className="w-8 h-8 rounded-lg bg-primary/5 flex items-center justify-center group-hover:bg-primary/10 transition-colors">
-                            <BookOpen className="h-4 w-4 text-primary" />
-                          </div>
-                          <span className="text-sm font-medium">{lesson}</span>
-                          <ChevronRight className="h-4 w-4 text-muted-foreground ml-auto opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
-                        </Link>
-                      ))}
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
       </div>
     </DashboardLayout>
   );

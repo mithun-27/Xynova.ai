@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Landing from "./pages/Landing";
 import Dashboard from "./pages/Dashboard";
 import TopicGenerator from "./pages/TopicGenerator";
+import TopicsList from "./pages/TopicsList";
 import LessonReader from "./pages/LessonReader";
 import AiTutor from "./pages/AiTutor";
 import Quiz from "./pages/Quiz";
@@ -30,11 +31,11 @@ const App = () => (
             <Route path="/" element={<Landing />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/topics" element={<TopicGenerator />} />
+            <Route path="/topics" element={<TopicsList />} />
             <Route path="/lesson/:lessonId" element={<LessonReader />} />
             <Route path="/tutor" element={<AiTutor />} />
             <Route path="/quiz" element={<Quiz />} />
-            <Route path="/roadmap" element={<Navigate to="/topics" replace />} />
+            <Route path="/roadmap" element={<TopicGenerator />} />
             <Route path="/roadmap/:topicId" element={<RoadmapView />} />
             <Route path="/analytics" element={<Analytics />} />
             <Route path="/settings" element={<Settings />} />

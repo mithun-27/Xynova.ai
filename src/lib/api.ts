@@ -23,9 +23,15 @@ export interface TaskResponse {
   status: string;
 }
 
+export interface LessonMetadata {
+  id: number;
+  title: string;
+  is_completed: boolean;
+}
+
 export interface RoadmapUnit {
   title: string;
-  lessons: string[];
+  lessons: (string | LessonMetadata)[];
 }
 
 export interface Roadmap {

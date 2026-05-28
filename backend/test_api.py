@@ -7,7 +7,7 @@ BASE_URL = "http://127.0.0.1:8000/api/v1"
 def test_flow():
     print("--- 1. Testing Registration ---")
     reg_data = {
-        "name": "Test User",
+        "username": f"user_{int(time.time())}",
         "email": f"test_{int(time.time())}@example.com",
         "password": "password123"
     }
