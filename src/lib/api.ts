@@ -96,24 +96,8 @@ class ApiClient {
     return response.json();
   }
 
-  // Auth
-  async login(formData: FormData) {
-    const response = await fetch(`${API_URL}/auth/login`, {
-      method: "POST",
-      body: formData, // OAuth2PasswordRequestForm expects form data
-    });
-    if (!response.ok) throw new Error("Login failed");
-    const data = await response.json();
-    this.setToken(data.access_token);
-    return data;
-  }
-
-  async register(data: any) {
-    return this.request("/auth/register", {
-      method: "POST",
-      body: JSON.stringify(data),
-    });
-  }
+  // Auth is handled by Supabase directly
+  // Token is synced via App.tsx using setToken
 
   // Roadmap
   async generateRoadmap(topic: string, file?: File | null): Promise<TaskResponse> {

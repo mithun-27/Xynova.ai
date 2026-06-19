@@ -21,6 +21,43 @@ import { BackgroundTasksProvider } from "./context/BackgroundTasksContext";
 
 const queryClient = new QueryClient();
 
+import { useEffect } from "react";
+import { supabase } from "@/lib/supabase";
+import { api } from "@/lib/api";
+
+const AppContent = () => {
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      api.setToken(session?.access_token || null);
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      api.setToken(session?.access_token || null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  return (
+    <Routes>
+      <Route path="/" element={<Landing />} />
+      <Route path="/auth" element={<Auth />} />
+      <Route path="/dashboard" element={<Dashboard />} />
+      <Route path="/topics" element={<TopicsList />} />
+      <Route path="/lesson/:lessonId" element={<LessonReader />} />
+      <Route path="/tutor" element={<AiTutor />} />
+      <Route path="/quiz" element={<Quiz />} />
+      <Route path="/roadmap" element={<TopicGenerator />} />
+      <Route path="/roadmap/:topicId" element={<RoadmapView />} />
+      <Route path="/analytics" element={<Analytics />} />
+      <Route path="/settings" element={<Settings />} />
+      <Route path="*" element={<NotFound />} />
+    </Routes>
+  );
+};
+
 const App = () => (
   <ThemeProvider defaultTheme="system" enableSystem attribute="class">
     <QueryClientProvider client={queryClient}>
@@ -29,20 +66,7 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <BackgroundTasksProvider>
-            <Routes>
-              <Route path="/" element={<Landing />} />
-              <Route path="/auth" element={<Auth />} />
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/topics" element={<TopicsList />} />
-              <Route path="/lesson/:lessonId" element={<LessonReader />} />
-              <Route path="/tutor" element={<AiTutor />} />
-              <Route path="/quiz" element={<Quiz />} />
-              <Route path="/roadmap" element={<TopicGenerator />} />
-              <Route path="/roadmap/:topicId" element={<RoadmapView />} />
-              <Route path="/analytics" element={<Analytics />} />
-              <Route path="/settings" element={<Settings />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
+            <AppContent />
           </BackgroundTasksProvider>
         </BrowserRouter>
       </TooltipProvider>
