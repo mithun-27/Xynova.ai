@@ -21,3 +21,4 @@ pytest-asyncio
 email-validator
 pypdf
 python-docx
+supabase

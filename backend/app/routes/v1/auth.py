@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from jose import JWTError, jwt
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 import uuid
+from supabase import create_client, Client
 
 from app.core.config import settings
 from app.database.session import get_db
@@ -11,6 +11,9 @@ from app.models.user import User
 
 router = APIRouter()
 security = HTTPBearer()
+
+# Initialize Supabase client
+supabase: Client = create_client(settings.SUPABASE_URL, settings.SUPABASE_ANON_KEY)
 
 async def get_current_user(
     db: AsyncSession = Depends(get_db),
@@ -21,19 +24,17 @@ async def get_current_user(
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
+    
+    # Verify token with Supabase directly
     try:
-        # Supabase JWTs are signed with HS256 using the JWT_SECRET
-        payload = jwt.decode(
-            credentials.credentials, 
-            settings.JWT_SECRET, 
-            algorithms=["HS256"],
-            audience="authenticated"
-        )
-        email: str = payload.get("email")
-        if email is None:
+        user_response = supabase.auth.get_user(credentials.credentials)
+        if not user_response.user:
             raise credentials_exception
-    except JWTError as e:
-        print(f"JWT Decode Error: {e}")
+        email = user_response.user.email
+        if not email:
+            raise credentials_exception
+    except Exception as e:
+        print(f"Supabase Auth Error: {e}")
         raise credentials_exception
     
     result = await db.execute(select(User).where(User.email == email))

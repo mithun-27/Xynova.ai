@@ -27,6 +27,10 @@ class Settings(BaseSettings):
     JWT_SECRET: str
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+    
+    # Supabase Auth
+    SUPABASE_URL: str
+    SUPABASE_ANON_KEY: str
 
     model_config = SettingsConfigDict(env_file=".env", case_sensitive=True)
 
