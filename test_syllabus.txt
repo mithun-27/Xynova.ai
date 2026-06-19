@@ -1,0 +1,12 @@
+Advanced Python Optimization Syllabus
+1. Profiling and Performance Monitoring
+   - Using cProfile and line_profiler
+   - Analyzing call graphs and CPU bottlenecks
+2. Memory Management Optimization
+   - Garbage collector internals
+   - Weak references and slots
+   - Using memory_profiler
+3. Concurrency and AsyncIO optimization
+   - Optimizing event loops
+   - ThreadPool vs ProcessPool optimization
+   - Preventing race conditions in asyncio

@@ -7,13 +7,16 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import DashboardLayout from "@/components/DashboardLayout";
 import { toast } from "sonner";
 import { api, Topic, Roadmap } from "@/lib/api";
+import { useBackgroundTasks } from "@/context/BackgroundTasksContext";
 
 const TopicGenerator = () => {
   const [topic, setTopic] = useState("");
   const [loading, setLoading] = useState(false);
   const [roadmap, setRoadmap] = useState<Roadmap | null>(null);
   const [uploading, setUploading] = useState(false);
+  const { addTask } = useBackgroundTasks();
   const [uploadedFile, setUploadedFile] = useState<{ name: string; size: string } | null>(null);
+  const [fileObject, setFileObject] = useState<File | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [savedTopics, setSavedTopics] = useState<Topic[]>([]);
   const navigate = useNavigate();
@@ -35,46 +38,23 @@ const TopicGenerator = () => {
     }
   };
 
-  const pollTask = async (taskId: string, topicName: string) => {
-    const interval = setInterval(async () => {
-      try {
-        const response = await api.getTaskStatus(taskId);
-        if (response.status === "SUCCESS") {
-          clearInterval(interval);
-          setLoading(false);
-          toast.success("Roadmap generated!");
-          
-          // Navigate directly using topic_id from result
-          if (response.result?.topic_id) {
-            navigate(`/roadmap/${response.result.topic_id}`);
-          } else {
-            // Fallback: fetch all topics
-            const res = await api.getTopics();
-            const newTopic = res.find(t => t.title.toLowerCase() === topicName.toLowerCase());
-            if (newTopic) navigate(`/roadmap/${newTopic.id}`);
-            else fetchTopics();
-          }
-        } else if (response.status === "FAILURE") {
-          clearInterval(interval);
-          setLoading(false);
-          toast.error("Generation failed: " + (response.result || "Unknown error"));
-        }
-      } catch (err) {
-        clearInterval(interval);
-        setLoading(false);
-      }
-    }, 1500); // 1.5s is a good balance
-  };
-
   const generate = async () => {
     if (!topic.trim() && !uploadedFile) return;
+    const topicToUse = topic.trim() || (uploadedFile ? `Document: ${uploadedFile.name}` : "Custom Study Guide");
     setLoading(true);
     setRoadmap(null);
     try {
-      const res = await api.generateRoadmap(topic);
-      pollTask(res.task_id, topic);
+      const res = await api.generateRoadmap(topicToUse, fileObject);
+      addTask(res.task_id, topicToUse);
+      toast.success("Generation started", {
+        description: `We are architecting your learning path for "${topicToUse}" in the background. You can track its progress in the header task manager.`,
+      });
+      setTopic("");
+      setUploadedFile(null);
+      setFileObject(null);
     } catch (err: any) {
-      toast.error(err.message);
+      toast.error(err.message || "Failed to start roadmap generation");
+    } finally {
       setLoading(false);
     }
   };
@@ -109,6 +89,7 @@ const TopicGenerator = () => {
     if (file) {
       setUploading(true);
       setUploadProgress(0);
+      setFileObject(file);
 
       const interval = setInterval(() => {
         setUploadProgress(prev => {
@@ -127,6 +108,7 @@ const TopicGenerator = () => {
 
   const removeFile = () => {
     setUploadedFile(null);
+    setFileObject(null);
     setUploadProgress(0);
   };
 
@@ -317,45 +299,6 @@ const TopicGenerator = () => {
           </motion.div>
         )}
 
-        {loading && (
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-xl p-6"
-          >
-            <div className="relative glass-card p-16 text-center max-w-2xl w-full border border-primary/20 bg-primary/5 shadow-2xl shadow-primary/20 rounded-[3rem] overflow-hidden">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full -translate-y-32 translate-x-32 blur-[100px] animate-pulse" />
-                <div className="absolute bottom-0 left-0 w-64 h-64 bg-purple-500/10 rounded-full translate-y-32 -translate-x-32 blur-[100px] animate-pulse" />
-                
-                <div className="relative z-10 flex flex-col items-center">
-                  <div className="relative w-20 h-20 mb-10">
-                    <div className="absolute inset-0 rounded-full border-2 border-primary/20 animate-ping opacity-20" />
-                    <div className="relative rounded-2xl bg-primary/10 p-5 flex items-center justify-center border border-primary/20 shadow-2xl shadow-primary/20">
-                      <Loader2 className="h-10 w-10 animate-spin text-primary" />
-                    </div>
-                  </div>
-                  
-                  <h3 className="text-3xl font-black mb-4 bg-clip-text text-transparent bg-gradient-to-r from-primary via-purple-400 to-indigo-500 tracking-tight">
-                    Engineering Your Future
-                  </h3>
-                  <p className="text-base text-muted-foreground max-w-[420px] mx-auto italic leading-relaxed font-medium">
-                    Our AI is architecting units, extraction logic, and interactive modules for your specialized journey.
-                  </p>
-                  
-                  <div className="mt-12 flex justify-center gap-2">
-                    {[0, 1, 2, 3, 4].map((i) => (
-                      <motion.div
-                        key={i}
-                        animate={{ y: [0, -10, 0], opacity: [0.3, 1, 0.3], scale: [1, 1.2, 1] }}
-                        transition={{ duration: 1.5, repeat: Infinity, delay: i * 0.15, ease: "easeInOut" }}
-                        className="w-2 h-2 rounded-full bg-primary shadow-[0_0_10px_rgba(var(--primary),0.5)]"
-                      />
-                    ))}
-                  </div>
-                </div>
-            </div>
-          </motion.div>
-        )}
       </div>
     </DashboardLayout>
   );

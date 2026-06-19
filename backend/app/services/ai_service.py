@@ -74,12 +74,20 @@ class AIService:
 
     # ─── ROADMAP ────────────────────────────────────────────────
     @staticmethod
-    async def generate_roadmap(topic: str) -> AIRoadmap:
-        prompt = f"""Generate a learning roadmap for "{topic}". Return JSON: {{"topic":"{topic}","units":[{{"title":"Unit","lessons":["Lesson1","Lesson2"]}}]}}. Create 5-8 units with 2-3 lessons each. Short lesson names only."""
+    async def generate_roadmap(topic: str, document_content: Optional[str] = None) -> AIRoadmap:
+        if document_content:
+            prompt = f"""Generate a learning roadmap for "{topic}" based strictly on the following uploaded document content:
+---
+{document_content[:15000]}
+---
+Return JSON: {{"topic":"{topic}","units":[{{"title":"Unit","lessons":["Lesson1","Lesson2"]}}]}}. Create 5-8 units with 2-3 lessons each covering the material in the document. Short lesson names only."""
+        else:
+            prompt = f"""Generate a learning roadmap for "{topic}". Return JSON: {{"topic":"{topic}","units":[{{"title":"Unit","lessons":["Lesson1","Lesson2"]}}]}}. Create 5-8 units with 2-3 lessons each. Short lesson names only."""
+            
         payload = {
             "messages": [{"role": "user", "content": prompt}],
             "response_format": {"type": "json_object"},
-            "max_tokens": 1500
+            "max_tokens": 2000
         }
         data = await AIService._call_with_fallback(payload)
         content = data['choices'][0]['message']['content']
@@ -147,7 +155,7 @@ class AIService:
 
     # ─── LESSON CONTENT ─────────────────────────────────────────
     @staticmethod
-    async def generate_lesson_content(topic: str, lesson_title: str) -> str:
+    async def generate_lesson_content(topic: str, lesson_title: str, document_content: Optional[str] = None) -> str:
         system_msg = """You are an expert course instructor. You write beautifully structured lessons in Markdown.
 
 STRICT FORMATTING RULES:
@@ -165,7 +173,48 @@ STRICT FORMATTING RULES:
 - DO NOT output everything as one wall of text
 - Every section MUST have proper spacing"""
 
-        user_msg = f"""Write a lesson on "{lesson_title}" for a course on "{topic}".
+        if document_content:
+            user_msg = f"""Write a lesson on "{lesson_title}" for a course on "{topic}" based on the following uploaded document content:
+---
+{document_content[:8000]}
+---
+
+Structure it EXACTLY like this:
+
+## Introduction
+Brief intro paragraph here.
+
+## [Core Concept 1]
+Explanation with **bold key terms**.
+
+- Bullet point 1
+- Bullet point 2
+- Bullet point 3
+
+### [Sub-topic if relevant]
+More detail here.
+
+```python
+# code example if relevant
+example_code()
+```
+
+## [Core Concept 2]
+Continue with more content...
+
+## Key Takeaways
+- Takeaway 1
+- Takeaway 2
+- Takeaway 3
+
+## 📚 Resources
+- [Resource Name](https://real-url.com) - Brief description
+- [Resource Name](https://real-url.com) - Brief description
+- [Resource Name](https://real-url.com) - Brief description
+
+Now write the actual lesson following this exact format. Use real, working URLs for resources (official docs, MDN, W3Schools, GeeksforGeeks, Real Python, Khan Academy, Coursera, etc)."""
+        else:
+            user_msg = f"""Write a lesson on "{lesson_title}" for a course on "{topic}".
 
 Structure it EXACTLY like this:
 

@@ -116,7 +116,32 @@ class ApiClient {
   }
 
   // Roadmap
-  async generateRoadmap(topic: string): Promise<TaskResponse> {
+  async generateRoadmap(topic: string, file?: File | null): Promise<TaskResponse> {
+    if (file) {
+      const formData = new FormData();
+      formData.append("topic", topic);
+      formData.append("file", file);
+      
+      const response = await fetch(`${API_URL}/roadmap/generate-roadmap`, {
+        method: "POST",
+        body: formData,
+        headers: {
+          ...(this.token ? { Authorization: `Bearer ${this.token}` } : {}),
+        }
+      });
+      
+      if (response.status === 401) {
+        this.setToken(null);
+        window.location.href = "/auth";
+        throw new Error("Unauthorized");
+      }
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({ detail: "Unknown error" }));
+        throw new Error(error.detail || "API request failed");
+      }
+      return response.json();
+    }
+
     return this.request("/roadmap/generate-roadmap", {
       method: "POST",
       body: JSON.stringify({ topic }),

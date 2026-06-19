@@ -16,20 +16,21 @@ def run_async(coro):
         return loop.run_until_complete(coro)
 
 @celery_app.task(name="generate_roadmap_task")
-def generate_roadmap_task(user_id: int, topic_title: str):
+def generate_roadmap_task(user_id: int, topic_title: str, document_content: str = None):
     async def _logic():
         from app.core.config import logger
         logger.info(f"START: generate_roadmap_task for topic '{topic_title}'")
         async with AsyncSessionLocal() as db:
             # 1. Generate the roadmap structure via AI
             logger.info("Calling AI service for roadmap...")
-            roadmap = await ai_service.generate_roadmap(topic_title)
+            roadmap = await ai_service.generate_roadmap(topic_title, document_content)
             logger.info("AI response received.")
             
             # 2. Create the Topic record
             new_topic = Topic(
                 user_id=user_id,
                 title=topic_title,
+                document_content=document_content,
                 roadmap_graph={} # Placeholder
             )
             db.add(new_topic)
@@ -111,7 +112,7 @@ def generate_lesson_task(lesson_id: int):
                 return "Lesson not found"
             
             topic = await db.get(Topic, lesson.topic_id)
-            content = await ai_service.generate_lesson_content(topic.title, lesson.title)
+            content = await ai_service.generate_lesson_content(topic.title, lesson.title, topic.document_content)
             
             lesson.content = content
             await db.commit()

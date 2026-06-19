@@ -35,24 +35,27 @@ def test_flow():
         return
 
     print("\n--- 4. Polling Task Status ---")
+    topic_id = None
     for _ in range(10):
         resp = requests.get(f"{BASE_URL}/tasks/status/{task_id}", headers=headers)
-        status = resp.json()["status"]
+        res_json = resp.json()
+        status = res_json["status"]
         print(f"Task Status: {status}")
         if status == "SUCCESS":
+            topic_id = res_json["result"]["topic_id"]
             break
         time.sleep(5)
 
     print("\n--- 5. Testing Chat ---")
     chat_data = {
         "user_message": "What is Python?",
-        "topic_id": 1, # Assuming first topic created
+        "topic_id": topic_id,
         "history": []
     }
     resp = requests.post(f"{BASE_URL}/chat/", json=chat_data, headers=headers)
     print(f"Chat Status: {resp.status_code}")
     if resp.status_code == 200:
-        print(f"AI Response: {resp.json()['response'][:100]}...")
+        print(f"AI Response: {resp.json()['response'].encode('ascii', 'ignore').decode('ascii')[:100]}...")
 
 if __name__ == "__main__":
     test_flow()

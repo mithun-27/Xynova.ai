@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request, UploadFile
 from app.schemas.topic import TopicCreate, Topic as TopicSchema, Roadmap, TopicUpdate, RoadmapConfirmRequest
 from app.schemas.task import TaskResponse
 from app.workers.async_runner import submit_task
@@ -10,7 +10,8 @@ from app.models.lesson import Lesson
 from app.database.session import get_db
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from typing import List
+from typing import List, Optional
+from app.utils.document_parser import extract_text_from_file
 
 router = APIRouter()
 
@@ -21,11 +22,32 @@ logger = logging.getLogger(__name__)
 
 @router.post("/generate-roadmap", response_model=TaskResponse, dependencies=[Depends(ai_gen_limiter)])
 async def generate_roadmap(
-    topic_in: TopicCreate,
+    request: Request,
     current_user: User = Depends(get_current_user)
 ):
+    content_type = request.headers.get("content-type", "")
+    topic = ""
+    document_content = None
+    
+    if "multipart/form-data" in content_type:
+        form = await request.form()
+        topic = form.get("topic", "")
+        file = form.get("file")
+        if file and isinstance(file, UploadFile) and file.filename:
+            document_content = await extract_text_from_file(file)
+    else:
+        try:
+            body = await request.json()
+            topic = body.get("topic", "")
+            document_content = body.get("document_content")
+        except Exception:
+            raise HTTPException(status_code=400, detail="Invalid request payload. Must be JSON or multipart/form-data.")
+            
+    if not topic:
+        raise HTTPException(status_code=400, detail="Topic is required.")
+        
     try:
-        task_id = submit_task(run_generate_roadmap(current_user.id, topic_in.topic))
+        task_id = submit_task(run_generate_roadmap(current_user.id, topic, document_content))
         return {"task_id": task_id, "status": "PENDING"}
     except Exception as e:
         logger.exception(f"Error starting roadmap task: {e}")

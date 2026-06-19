@@ -17,6 +17,7 @@ import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
 import { ThemeProvider } from "./components/ThemeProvider";
+import { BackgroundTasksProvider } from "./context/BackgroundTasksContext";
 
 const queryClient = new QueryClient();
 
@@ -27,20 +28,22 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Landing />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/topics" element={<TopicsList />} />
-            <Route path="/lesson/:lessonId" element={<LessonReader />} />
-            <Route path="/tutor" element={<AiTutor />} />
-            <Route path="/quiz" element={<Quiz />} />
-            <Route path="/roadmap" element={<TopicGenerator />} />
-            <Route path="/roadmap/:topicId" element={<RoadmapView />} />
-            <Route path="/analytics" element={<Analytics />} />
-            <Route path="/settings" element={<Settings />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+          <BackgroundTasksProvider>
+            <Routes>
+              <Route path="/" element={<Landing />} />
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/topics" element={<TopicsList />} />
+              <Route path="/lesson/:lessonId" element={<LessonReader />} />
+              <Route path="/tutor" element={<AiTutor />} />
+              <Route path="/quiz" element={<Quiz />} />
+              <Route path="/roadmap" element={<TopicGenerator />} />
+              <Route path="/roadmap/:topicId" element={<RoadmapView />} />
+              <Route path="/analytics" element={<Analytics />} />
+              <Route path="/settings" element={<Settings />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BackgroundTasksProvider>
         </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>

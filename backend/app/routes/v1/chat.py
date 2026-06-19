@@ -21,8 +21,11 @@ async def chat_with_tutor(
     db: AsyncSession = Depends(get_db)
 ):
     # Fetch context
-    lesson = await db.get(Lesson, chat_in.lesson_id) if chat_in.lesson_id else None
     topic = await db.get(Topic, chat_in.topic_id)
+    if not topic:
+        raise HTTPException(status_code=404, detail="Topic not found")
+        
+    lesson = await db.get(Lesson, chat_in.lesson_id) if chat_in.lesson_id else None
     
     context = f"Topic: {topic.title}\n"
     if lesson:

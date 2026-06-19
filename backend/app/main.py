@@ -18,6 +18,8 @@ async def lifespan(app: FastAPI):
     # Create tables
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+        from sqlalchemy import text
+        await conn.execute(text("ALTER TABLE topics ADD COLUMN IF NOT EXISTS document_content TEXT;"))
     yield
 
 app = FastAPI(
