@@ -58,8 +58,40 @@ async def list_topics(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
+    from app.models.progress import Progress
+    from sqlalchemy import func
+    
     result = await db.execute(select(Topic).where(Topic.user_id == current_user.id))
-    return result.scalars().all()
+    topics = result.scalars().all()
+    
+    enriched_topics = []
+    for topic in topics:
+        # Total lessons for this topic
+        total_stmt = select(func.count(Lesson.id)).where(Lesson.topic_id == topic.id)
+        total_count = (await db.execute(total_stmt)).scalar() or 0
+        
+        # Completed lessons for this topic by this user
+        completed_stmt = (
+            select(func.count(Progress.id))
+            .join(Lesson, Progress.lesson_id == Lesson.id)
+            .where(
+                Lesson.topic_id == topic.id,
+                Progress.user_id == current_user.id,
+                Progress.completed == True
+            )
+        )
+        completed_count = (await db.execute(completed_stmt)).scalar() or 0
+        
+        percentage = (completed_count / total_count) * 100 if total_count > 0 else 0.0
+        
+        enriched_topics.append(TopicSchema(
+            id=topic.id,
+            title=topic.title,
+            roadmap_graph=topic.roadmap_graph,
+            progress_percentage=round(percentage, 2)
+        ))
+    
+    return enriched_topics
 
 @router.patch("/{topic_id}/graph", response_model=TopicSchema)
 async def update_roadmap_graph(

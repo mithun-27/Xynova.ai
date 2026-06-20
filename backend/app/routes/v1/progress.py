@@ -6,6 +6,7 @@ from app.models.user import User
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.database.session import get_db
 from sqlalchemy import select
+from sqlalchemy.sql import func
 
 router = APIRouter()
 
@@ -24,11 +25,13 @@ async def mark_complete(
     
     if progress:
         progress.completed = progress_in.completed
+        progress.completed_at = func.now() if progress_in.completed else None
     else:
         progress = Progress(
             user_id=current_user.id,
             lesson_id=progress_in.lesson_id,
-            completed=progress_in.completed
+            completed=progress_in.completed,
+            completed_at=func.now() if progress_in.completed else None
         )
         db.add(progress)
         

@@ -17,6 +17,7 @@ class RoadmapConfirmRequest(BaseModel):
     roadmap_graph: dict
 
 class Topic(TopicBase):
+    progress_percentage: Optional[float] = 0.0
     class Config:
         from_attributes = True
 

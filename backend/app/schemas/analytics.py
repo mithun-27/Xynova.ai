@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import List
+from typing import List, Dict
 
 class ProgressUpdate(BaseModel):
     lesson_id: int
@@ -10,3 +10,4 @@ class Analytics(BaseModel):
     quiz_scores: List[float]
     study_streak: int
     progress_percentage: float
+    calendar_data: Dict[str, int] = {}

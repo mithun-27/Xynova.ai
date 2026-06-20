@@ -20,6 +20,7 @@ async def lifespan(app: FastAPI):
         await conn.run_sync(Base.metadata.create_all)
         from sqlalchemy import text
         await conn.execute(text("ALTER TABLE topics ADD COLUMN IF NOT EXISTS document_content TEXT;"))
+        await conn.execute(text("ALTER TABLE progress ADD COLUMN IF NOT EXISTS completed_at TIMESTAMP WITH TIME ZONE;"))
     yield
 
 app = FastAPI(

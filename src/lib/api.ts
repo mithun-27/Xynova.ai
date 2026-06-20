@@ -8,6 +8,7 @@ export interface Analytics {
   quiz_scores: number[];
   study_streak: number;
   progress_percentage: number;
+  calendar_data?: { [date: string]: number };
 }
 
 export interface Lesson {
@@ -47,6 +48,7 @@ export interface Topic {
   id: number;
   title: string;
   created_at: string;
+  progress_percentage?: number;
 }
 
 class ApiClient {

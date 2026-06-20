@@ -10,27 +10,26 @@ import { useTheme } from "next-themes";
 import { subDays, format } from "date-fns";
 import { api, Topic, Analytics } from "@/lib/api";
 
-const generateCalendarData = () => {
+/**
+ * Build the 365-day activity calendar from real backend calendar_data.
+ * Each day gets count & level (0-4) based on actual lesson completions.
+ */
+const buildCalendarFromBackend = (calendarData?: { [date: string]: number }) => {
   const data = [];
   const today = new Date();
   for (let i = 365; i >= 0; i--) {
     const date = subDays(today, i);
-    const count = Math.floor(Math.random() * 5); // 0 to 4
-    let level = 0;
+    const dateStr = format(date, "yyyy-MM-dd");
+    const count = calendarData?.[dateStr] || 0;
+    let level: 0 | 1 | 2 | 3 | 4 = 0;
     if (count === 1) level = 1;
-    if (count === 2) level = 2;
-    if (count === 3) level = 3;
-    if (count >= 4) level = 4;
-    data.push({
-      date: format(date, "yyyy-MM-dd"),
-      count,
-      level: level as 0 | 1 | 2 | 3 | 4,
-    });
+    else if (count === 2) level = 2;
+    else if (count === 3) level = 3;
+    else if (count >= 4) level = 4;
+    data.push({ date: dateStr, count, level });
   }
   return data;
 };
-
-const activityData = generateCalendarData();
 
 const fadeUp = {
   hidden: { opacity: 0, y: 15 },
@@ -75,11 +74,13 @@ const Dashboard = () => {
     );
   }
 
+  const activityData = buildCalendarFromBackend(analytics?.calendar_data);
+
   const stats = [
     { label: "Topics Learning", value: userTopics.length.toString(), icon: BookOpen, color: "bg-primary/10 text-primary" },
-    { label: "Lessons Completed", value: analytics?.lessons_completed.toString() || "0", icon: TrendingUp, color: "bg-success/10 text-success" },
-    { label: "Study Streak", value: `${analytics?.study_streak || 0} days`, icon: Flame, color: "bg-warning/10 text-warning" },
-    { label: "Progress", value: `${Math.round(analytics?.progress_percentage || 0)}%`, icon: Trophy, color: "bg-accent/10 text-accent" },
+    { label: "Lessons Completed", value: (analytics?.lessons_completed ?? 0).toString(), icon: TrendingUp, color: "bg-success/10 text-success" },
+    { label: "Study Streak", value: `${analytics?.study_streak ?? 0} days`, icon: Flame, color: "bg-warning/10 text-warning" },
+    { label: "Progress", value: `${Math.round(analytics?.progress_percentage ?? 0)}%`, icon: Trophy, color: "bg-accent/10 text-accent" },
   ];
 
   return (
@@ -105,20 +106,23 @@ const Dashboard = () => {
           <h3 className="font-semibold mb-4">Continue Learning</h3>
           <div className="grid md:grid-cols-3 gap-4">
             {userTopics.length > 0 ? (
-              userTopics.map((t) => (
-                <div key={t.id} className="glass-card p-5 hover-lift">
-                  <h4 className="font-medium mb-3">{t.title}</h4>
-                  <Progress value={analytics?.progress_percentage || 0} className="h-2 mb-3" />
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-muted-foreground">{Math.round(analytics?.progress_percentage || 0)}% Completed</span>
-                    <Link to={`/roadmap/${t.id}`}>
-                      <Button size="sm" variant="ghost" className="text-xs">
-                        View Roadmap <ArrowRight className="ml-1 h-3 w-3" />
-                      </Button>
-                    </Link>
+              userTopics.map((t) => {
+                const topicProgress = t.progress_percentage ?? 0;
+                return (
+                  <div key={t.id} className="glass-card p-5 hover-lift">
+                    <h4 className="font-medium mb-3">{t.title}</h4>
+                    <Progress value={topicProgress} className="h-2 mb-3" />
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-muted-foreground">{Math.round(topicProgress)}% Completed</span>
+                      <Link to={`/roadmap/${t.id}`}>
+                        <Button size="sm" variant="ghost" className="text-xs">
+                          View Roadmap <ArrowRight className="ml-1 h-3 w-3" />
+                        </Button>
+                      </Link>
+                    </div>
                   </div>
-                </div>
-              ))
+                );
+              })
             ) : (
               <div className="md:col-span-3 glass-card p-8 text-center border-dashed border-2">
                 <p className="text-muted-foreground mb-4">You haven't generated any topics yet.</p>
@@ -130,7 +134,7 @@ const Dashboard = () => {
           </div>
         </motion.div>
 
-        {/* Weekly Chart */}
+        {/* Learning Contributions */}
         <motion.div variants={fadeUp} custom={5} initial="hidden" animate="visible"
           className="glass-card p-6 overflow-hidden"
         >
@@ -175,3 +179,4 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
+
