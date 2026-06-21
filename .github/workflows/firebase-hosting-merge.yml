@@ -22,7 +22,7 @@ jobs:
       - name: Build Application
         run: npm run build
         env:
-          VITE_API_URL: https://xynova-backend.onrender.com/api/v1 # Replace with your deployed Render FastAPI backend URL!
+          VITE_API_URL: https://xynova-ai.onrender.com/api/v1
 
       - name: Deploy to Firebase Hosting
         uses: FirebaseExtended/action-firebase-hosting@v0

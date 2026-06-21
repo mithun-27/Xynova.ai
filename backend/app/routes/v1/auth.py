@@ -67,3 +67,11 @@ async def get_me(current_user: User = Depends(get_current_user)):
         "email": current_user.email,
         "username": current_user.username
     }
+
+@router.get("/config")
+async def get_supabase_config():
+    return {
+        "supabase_url": settings.SUPABASE_URL,
+        "supabase_anon_key": settings.SUPABASE_ANON_KEY
+    }
+

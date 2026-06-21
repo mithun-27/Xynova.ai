@@ -21,24 +21,55 @@ import { BackgroundTasksProvider } from "./context/BackgroundTasksContext";
 
 const queryClient = new QueryClient();
 
-import { useEffect } from "react";
-import { supabase } from "@/lib/supabase";
+import { useEffect, useState } from "react";
+import { supabase, initSupabase } from "@/lib/supabase";
 import { api } from "@/lib/api";
+import { Loader2 } from "lucide-react";
 
 const AppContent = () => {
+  const [ready, setReady] = useState(false);
+
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      api.setToken(session?.access_token || null);
-    });
+    let active = true;
+    let subscription: any = null;
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      api.setToken(session?.access_token || null);
-    });
+    const setup = async () => {
+      await initSupabase();
+      if (!active) return;
 
-    return () => subscription.unsubscribe();
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (!active) return;
+        api.setToken(session?.access_token || null);
+      });
+
+      const {
+        data: { subscription: sub },
+      } = supabase.auth.onAuthStateChange((_event, session) => {
+        if (!active) return;
+        api.setToken(session?.access_token || null);
+      });
+
+      subscription = sub;
+      setReady(true);
+    };
+
+    setup();
+
+    return () => {
+      active = false;
+      if (subscription) {
+        subscription.unsubscribe();
+      }
+    };
   }, []);
+
+  if (!ready) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#0f0a1c]">
+        <Loader2 className="h-8 w-8 animate-spin text-purple-500" />
+      </div>
+    );
+  }
 
   return (
     <Routes>
