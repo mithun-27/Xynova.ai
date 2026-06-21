@@ -43,6 +43,15 @@ jobs:
           pip install -r requirements.txt
           
       - name: Run Pytest
+        env:
+          DATABASE_URL: postgresql+asyncpg://postgres:password@localhost:5432/postgres
+          REDIS_URL: redis://localhost:6379/0
+          CELERY_BROKER_URL: redis://localhost:6379/0
+          CELERY_RESULT_BACKEND: redis://localhost:6379/0
+          OPENROUTER_API_KEY: mock-key
+          JWT_SECRET: mock-secret
+          SUPABASE_URL: https://psuhnsnrksqovdsqfhxs.supabase.co
+          SUPABASE_ANON_KEY: mock-anon-key
         run: |
           cd backend
           pytest

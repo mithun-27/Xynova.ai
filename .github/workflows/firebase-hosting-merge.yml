@@ -25,7 +25,7 @@ jobs:
           VITE_API_URL: https://xynova-ai.onrender.com/api/v1
 
       - name: Deploy to Firebase Hosting
-        uses: FirebaseExtended/action-firebase-hosting@v0
+        uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_XYNOVA }}
