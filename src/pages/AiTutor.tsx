@@ -7,6 +7,8 @@ import DashboardLayout from "@/components/DashboardLayout";
 import { api } from "@/lib/api";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 type Message = { role: "user" | "assistant"; content: string; reasoning_details?: string };
 
@@ -93,7 +95,46 @@ const AiTutor = () => {
                     ? "bg-primary text-primary-foreground rounded-br-none"
                     : "bg-card rounded-bl-none"
                 }`}>
-                  {msg.content}
+                  {msg.role === "user" ? (
+                    msg.content
+                  ) : (
+                    <div className="prose prose-sm dark:prose-invert max-w-none
+                      prose-p:leading-relaxed prose-p:my-1.5 first:prose-p:mt-0 last:prose-p:mb-0
+                      prose-headings:font-bold prose-headings:tracking-tight prose-headings:text-foreground
+                      prose-ul:my-1.5 prose-ol:my-1.5 prose-ul:list-disc prose-ol:list-decimal prose-li:my-0.5
+                      prose-strong:font-semibold prose-strong:text-foreground
+                      prose-code:bg-muted/60 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded-md prose-code:font-mono prose-code:text-[0.85em] prose-code:before:content-none prose-code:after:content-none
+                      prose-pre:bg-zinc-950 prose-pre:border prose-pre:border-border/40 prose-pre:rounded-xl prose-pre:p-4 prose-pre:my-3 prose-pre:shadow-lg
+                      prose-blockquote:border-l-4 prose-blockquote:border-primary/45 prose-blockquote:pl-4 prose-blockquote:italic prose-blockquote:my-2 prose-blockquote:text-muted-foreground
+                    ">
+                      <ReactMarkdown 
+                        remarkPlugins={[remarkGfm]}
+                        components={{
+                          h1: ({ children }) => <h1 className="text-base font-extrabold mt-4 mb-2 first:mt-0">{children}</h1>,
+                          h2: ({ children }) => <h2 className="text-sm font-extrabold mt-3 mb-1.5 first:mt-0">{children}</h2>,
+                          h3: ({ children }) => <h3 className="text-xs font-bold mt-2 mb-1 first:mt-0">{children}</h3>,
+                          p: ({ children }) => <p className="mb-1.5 last:mb-0 leading-relaxed">{children}</p>,
+                          ul: ({ children }) => <ul className="my-1.5 space-y-1 list-disc list-inside marker:text-primary/70">{children}</ul>,
+                          ol: ({ children }) => <ol className="my-1.5 space-y-1 list-decimal list-inside marker:text-primary/70">{children}</ol>,
+                          li: ({ children }) => <li className="text-muted-foreground text-sm pl-1">{children}</li>,
+                          code: ({ className, children }) => {
+                            const hasLang = /language-(\w+)/.exec(className || "");
+                            return !hasLang ? (
+                              <code className="bg-muted/60 px-1.5 py-0.5 rounded-md font-mono text-[0.85em] text-foreground font-semibold">
+                                {children}
+                              </code>
+                            ) : (
+                              <pre className="p-4 rounded-xl bg-zinc-950 border border-border/40 overflow-x-auto my-3 shadow-lg">
+                                <code className={className}>{children}</code>
+                              </pre>
+                            );
+                          }
+                        }}
+                      >
+                        {msg.content}
+                      </ReactMarkdown>
+                    </div>
+                  )}
                 </div>
                 {msg.role === "user" && (
                   <div className="bg-muted rounded-xl p-2.5 h-10 w-10 shrink-0 flex items-center justify-center">
