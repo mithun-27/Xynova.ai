@@ -6,9 +6,14 @@ class QuizQuestionBase(BaseModel):
     options: List[str]
     correct_answer: str
     explanation: str
+    difficulty: Optional[str] = None
 
 class QuizQuestionCreate(QuizQuestionBase):
     quiz_id: int
+
+class QuizSubmit(BaseModel):
+    score: int
+    total_questions: int
 
 class QuizQuestion(QuizQuestionBase):
     id: int

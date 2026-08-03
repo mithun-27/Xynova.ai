@@ -164,6 +164,18 @@ class ApiClient {
     return this.request(`/chat/history/${topicId}`);
   }
 
+  // Quizzes
+  async getQuiz(lessonId: number): Promise<any> {
+    return this.request(`/quiz/${lessonId}`);
+  }
+
+  async submitQuizScore(quizId: number, score: number, totalQuestions: number): Promise<any> {
+    return this.request(`/quiz/${quizId}/submit`, {
+      method: "POST",
+      body: JSON.stringify({ score, total_questions: totalQuestions }),
+    });
+  }
+
   // Lessons
   async getLesson(lessonId: number): Promise<Lesson> {
     return this.request(`/lesson/${lessonId}`);

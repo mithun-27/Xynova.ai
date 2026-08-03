@@ -9,7 +9,7 @@ from app.database.session import engine, Base
 from app.models.user import User
 from app.models.topic import Topic
 from app.models.lesson import Lesson
-from app.models.quiz import Quiz, QuizQuestion
+from app.models.quiz import Quiz, QuizQuestion, QuizAttempt
 from app.models.progress import Progress
 from app.models.chat import ChatHistory
 
@@ -21,6 +21,17 @@ async def lifespan(app: FastAPI):
         from sqlalchemy import text
         await conn.execute(text("ALTER TABLE topics ADD COLUMN IF NOT EXISTS document_content TEXT;"))
         await conn.execute(text("ALTER TABLE progress ADD COLUMN IF NOT EXISTS completed_at TIMESTAMP WITH TIME ZONE;"))
+        await conn.execute(text("ALTER TABLE quiz_questions ADD COLUMN IF NOT EXISTS difficulty VARCHAR;"))
+        await conn.execute(text("""
+            CREATE TABLE IF NOT EXISTS quiz_attempts (
+                id SERIAL PRIMARY KEY,
+                user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+                quiz_id INTEGER REFERENCES quizzes(id) ON DELETE CASCADE,
+                score INTEGER NOT NULL,
+                total_questions INTEGER NOT NULL,
+                completed_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+            );
+        """))
     yield
 
 app = FastAPI(

@@ -265,11 +265,37 @@ Now write the actual lesson following this exact format. Use real, working URLs 
     # ─── QUIZ ────────────────────────────────────────────────────
     @staticmethod
     async def generate_quiz(lesson_title: str, lesson_content: str) -> List[QuizQuestionBase]:
-        prompt = f"""Generate 3 MCQs about "{lesson_title}". Content: {lesson_content[:1000]}. Return JSON: {{"questions":[{{"question":"...","options":["A","B","C","D"],"correct_answer":"A","explanation":"..."}}]}}"""
+        prompt = f"""Generate exactly 3 multiple choice questions (MCQs) about "{lesson_title}" based on the following lesson content:
+---
+{lesson_content[:1500]}
+---
+Requirements:
+1. Generate exactly 3 questions.
+2. The questions must represent three distinct difficulty levels: one "Easy", one "Medium", and one "Hard".
+3. Return the results in a JSON object structure with a "questions" key containing a list of the 3 questions.
+4. Each question object must have:
+   - "question": the question text
+   - "options": an array of 4 distinct answers
+   - "correct_answer": the correct answer string (must match exactly one of the values in the "options" array)
+   - "explanation": a short explanation of why the answer is correct
+   - "difficulty": either "Easy", "Medium", or "Hard"
+
+JSON Schema:
+{{
+  "questions": [
+    {{
+      "question": "question text...",
+      "options": ["Option 1", "Option 2", "Option 3", "Option 4"],
+      "correct_answer": "Option 1",
+      "explanation": "why this is correct...",
+      "difficulty": "Easy"
+    }}
+  ]
+}}"""
         payload = {
             "messages": [{"role": "user", "content": prompt}],
             "response_format": {"type": "json_object"},
-            "max_tokens": 1200
+            "max_tokens": 1500
         }
         data = await AIService._call_with_fallback(payload)
         content = json.loads(data['choices'][0]['message']['content'])

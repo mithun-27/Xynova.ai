@@ -161,7 +161,7 @@ const LessonReader = () => {
                     >
                         <MessageSquare className="h-4 w-4 mr-2 text-primary" /> Ask AI Tutor
                     </Button>
-                    <Link to="/quiz">
+                    <Link to={`/quiz?lessonId=${lesson.id || lessonId}&lessonTitle=${encodeURIComponent(lesson.title)}`}>
                         <Button size="sm" variant="outline" className="h-9 border-accent/10 hover:bg-accent/5">
                             <BookOpen className="h-4 w-4 mr-2 text-accent" /> Take Quiz
                         </Button>

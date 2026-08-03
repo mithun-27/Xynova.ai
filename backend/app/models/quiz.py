@@ -1,4 +1,5 @@
-from sqlalchemy import Column, Integer, String, JSON, ForeignKey
+from sqlalchemy import Column, Integer, String, JSON, ForeignKey, DateTime
+from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 from app.database.session import Base
 
@@ -20,5 +21,16 @@ class QuizQuestion(Base):
     options = Column(JSON)  # List of strings
     correct_answer = Column(String)
     explanation = Column(String)
+    difficulty = Column(String, nullable=True)
 
     quiz = relationship("Quiz", back_populates="questions")
+
+class QuizAttempt(Base):
+    __tablename__ = "quiz_attempts"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    quiz_id = Column(Integer, ForeignKey("quizzes.id"))
+    score = Column(Integer)
+    total_questions = Column(Integer)
+    completed_at = Column(DateTime(timezone=True), server_default=func.now())

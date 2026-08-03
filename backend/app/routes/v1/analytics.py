@@ -91,6 +91,15 @@ async def get_analytics(
     
     # --- Quiz scores (real data from quiz results if available) ---
     quiz_scores: list[float] = []
+    from app.models.quiz import QuizAttempt
+    attempts_stmt = select(QuizAttempt).where(QuizAttempt.user_id == current_user.id).order_by(QuizAttempt.completed_at.asc())
+    attempts_result = await db.execute(attempts_stmt)
+    attempts = attempts_result.scalars().all()
+    quiz_scores = [
+        round((attempt.score / attempt.total_questions) * 100, 2)
+        for attempt in attempts
+        if attempt.total_questions > 0
+    ]
     
     return Analytics(
         lessons_completed=completed_count,
