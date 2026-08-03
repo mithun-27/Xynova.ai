@@ -32,6 +32,29 @@ const AiTutor = () => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, typing]);
 
+  useEffect(() => {
+    const loadHistory = async () => {
+      if (!topicId) return;
+      try {
+        const historyData = await api.getChatHistory(topicId);
+        const loadedMessages: Message[] = [];
+        historyData.forEach((row: any) => {
+          loadedMessages.push({ role: "user", content: row.message });
+          loadedMessages.push({ 
+            role: "assistant", 
+            content: row.response, 
+            reasoning_details: row.reasoning || undefined 
+          });
+        });
+        setMessages(loadedMessages);
+      } catch (err) {
+        console.error("Failed to load chat history", err);
+        toast.error("Failed to load past conversation.");
+      }
+    };
+    loadHistory();
+  }, [topicId]);
+
   const send = async () => {
     if (!input.trim() || typing) return;
     if (!topicId) {

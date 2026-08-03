@@ -160,6 +160,10 @@ class ApiClient {
     });
   }
 
+  async getChatHistory(topicId: number): Promise<any[]> {
+    return this.request(`/chat/history/${topicId}`);
+  }
+
   // Lessons
   async getLesson(lessonId: number): Promise<Lesson> {
     return this.request(`/lesson/${lessonId}`);

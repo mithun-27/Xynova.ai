@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
+from typing import List
 from app.schemas.chat import ChatMessage, ChatHistory
 from app.services.ai_service import ai_service
 from app.routes.v1.auth import get_current_user
@@ -63,3 +64,21 @@ async def chat_with_tutor(
     await db.refresh(history_entry)
     
     return history_entry
+
+@router.get("/history/{topic_id}", response_model=List[ChatHistory])
+async def get_chat_history(
+    topic_id: int,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    stmt = (
+        select(ChatHistoryModel)
+        .where(
+            ChatHistoryModel.user_id == current_user.id,
+            ChatHistoryModel.topic_id == topic_id
+        )
+        .order_by(ChatHistoryModel.timestamp.asc())
+    )
+    result = await db.execute(stmt)
+    return result.scalars().all()
+
