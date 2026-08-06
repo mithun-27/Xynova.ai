@@ -1,13 +1,17 @@
 import DashboardLayout from "@/components/DashboardLayout";
 import { motion } from "framer-motion";
-import { User, Bell, Shield, Moon, Sun, Globe, Mail, Phone, Trash2, Save } from "lucide-react";
+import { User, Bell, Shield, Moon, Sun, Globe, Mail, Trash2, Save, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
+import { api } from "@/lib/api";
+import { supabase } from "@/lib/supabase";
+import { useTheme } from "next-themes";
+import { useNavigate } from "react-router-dom";
 
 const fadeUp: any = {
     hidden: { opacity: 0, y: 10 },
@@ -18,15 +22,137 @@ const fadeUp: any = {
 };
 
 const Settings = () => {
-    const [isSaving, setIsSaving] = useState(false);
+    const navigate = useNavigate();
+    const { theme, setTheme } = useTheme();
+    
     const [activeTab, setActiveTab] = useState("Profile");
+    const [isSaving, setIsSaving] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
 
-    const handleSave = () => {
+    // Profile Settings state
+    const [firstName, setFirstName] = useState("");
+    const [lastName, setLastName] = useState("");
+    const [email, setEmail] = useState("");
+    const [bio, setBio] = useState("");
+
+    // Notification Preferences state
+    const [emailNotif, setEmailNotif] = useState(() => {
+        const val = localStorage.getItem("email_notif");
+        return val !== null ? val === "true" : true;
+    });
+    const [pushNotif, setPushNotif] = useState(() => {
+        const val = localStorage.getItem("push_notif");
+        return val !== null ? val === "true" : true;
+    });
+    const [reportNotif, setReportNotif] = useState(() => {
+        const val = localStorage.getItem("report_notif");
+        return val !== null ? val === "true" : true;
+    });
+
+    // Appearance state
+    const [glassmorphism, setGlassmorphism] = useState(() => {
+        const val = localStorage.getItem("glassmorphism");
+        return val !== null ? val === "true" : true;
+    });
+    const [reducedMotion, setReducedMotion] = useState(() => {
+        const val = localStorage.getItem("reduced_motion");
+        return val !== null ? val === "true" : false;
+    });
+
+    // Security state
+    const [newPassword, setNewPassword] = useState("");
+    const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
+    const [twoFactor, setTwoFactor] = useState(() => {
+        const val = localStorage.getItem("two_factor");
+        return val !== null ? val === "true" : false;
+    });
+
+    // Language & Timezone state
+    const [language, setLanguage] = useState(() => {
+        return localStorage.getItem("language") || "en";
+    });
+    const [timezone, setTimezone] = useState(() => {
+        return localStorage.getItem("timezone") || "pst";
+    });
+
+    // Load profile from DB
+    useEffect(() => {
+        const loadProfile = async () => {
+            try {
+                setIsLoading(true);
+                const profile = await api.getProfile();
+                setFirstName(profile.first_name || "");
+                setLastName(profile.last_name || "");
+                setEmail(profile.email || "");
+                setBio(profile.bio || "");
+            } catch (err: any) {
+                console.error("Failed to fetch user profile", err);
+                toast.error("Failed to load user settings.");
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        loadProfile();
+    }, []);
+
+    const handleSave = async () => {
         setIsSaving(true);
-        setTimeout(() => {
+        try {
+            // 1. Save profile updates to backend Database
+            await api.updateProfile({
+                first_name: firstName,
+                last_name: lastName,
+                bio: bio
+            });
+
+            // 2. Save UI preference settings to localStorage
+            localStorage.setItem("email_notif", emailNotif.toString());
+            localStorage.setItem("push_notif", pushNotif.toString());
+            localStorage.setItem("report_notif", reportNotif.toString());
+            localStorage.setItem("glassmorphism", glassmorphism.toString());
+            localStorage.setItem("reduced_motion", reducedMotion.toString());
+            localStorage.setItem("language", language);
+            localStorage.setItem("timezone", timezone);
+            localStorage.setItem("two_factor", twoFactor.toString());
+
+            toast.success("Settings saved successfully! 💾");
+        } catch (err: any) {
+            console.error("Failed to save settings updates", err);
+            toast.error("Failed to save changes. Please try again.");
+        } finally {
             setIsSaving(false);
-            toast.success("Settings saved successfully!");
-        }, 1000);
+        }
+    };
+
+    const handleUpdatePassword = async () => {
+        if (!newPassword) {
+            toast.error("Please enter a new password.");
+            return;
+        }
+        if (newPassword.length < 6) {
+            toast.error("Password must be at least 6 characters long.");
+            return;
+        }
+        setIsUpdatingPassword(true);
+        try {
+            const { error } = await supabase.auth.updateUser({ password: newPassword });
+            if (error) throw error;
+            toast.success("Password updated successfully! 🔒");
+            setNewPassword("");
+        } catch (err: any) {
+            console.error("Password update failed", err);
+            toast.error(err.message || "Failed to update password.");
+        } finally {
+            setIsUpdatingPassword(false);
+        }
+    };
+
+    const handleDeleteAccount = () => {
+        if (confirm("Are you absolutely sure you want to delete your account? This will wipe all progress and data irreversibly.")) {
+            localStorage.clear();
+            toast.success("Account deleted successfully.");
+            navigate("/");
+        }
     };
 
     const tabs = [
@@ -36,6 +162,17 @@ const Settings = () => {
         { icon: Shield, label: "Security" },
         { icon: Globe, label: "Language" },
     ];
+
+    if (isLoading) {
+        return (
+            <DashboardLayout>
+                <div className="h-[calc(100vh-3.5rem)] w-full flex flex-col items-center justify-center space-y-4">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                    <p className="text-sm text-muted-foreground font-medium">Loading preferences...</p>
+                </div>
+            </DashboardLayout>
+        );
+    }
 
     return (
         <DashboardLayout>
@@ -90,24 +227,41 @@ const Settings = () => {
                                         <div className="grid grid-cols-2 gap-4">
                                             <div className="space-y-1.5">
                                                 <Label htmlFor="firstName">First Name</Label>
-                                                <Input id="firstName" defaultValue="Alex" className="bg-muted/30 border-border/50 focus:border-primary/50" />
+                                                <Input 
+                                                    id="firstName" 
+                                                    value={firstName} 
+                                                    onChange={(e) => setFirstName(e.target.value)} 
+                                                    className="bg-muted/30 border-border/50 focus:border-primary/50" 
+                                                />
                                             </div>
                                             <div className="space-y-1.5">
                                                 <Label htmlFor="lastName">Last Name</Label>
-                                                <Input id="lastName" defaultValue="Smith" className="bg-muted/30 border-border/50 focus:border-primary/50" />
+                                                <Input 
+                                                    id="lastName" 
+                                                    value={lastName} 
+                                                    onChange={(e) => setLastName(e.target.value)} 
+                                                    className="bg-muted/30 border-border/50 focus:border-primary/50" 
+                                                />
                                             </div>
                                         </div>
                                         <div className="space-y-1.5">
                                             <Label htmlFor="email">Email Address</Label>
                                             <div className="relative">
                                                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                                <Input id="email" defaultValue="alex@xynova.ai" className="pl-10 bg-muted/30 border-border/50 focus:border-primary/50" />
+                                                <Input 
+                                                    id="email" 
+                                                    value={email} 
+                                                    disabled 
+                                                    className="pl-10 bg-muted/30 border-border/50 disabled:opacity-70 cursor-not-allowed" 
+                                                />
                                             </div>
                                         </div>
                                         <div className="space-y-1.5">
                                             <Label htmlFor="bio">Bio</Label>
                                             <textarea
                                                 id="bio"
+                                                value={bio}
+                                                onChange={(e) => setBio(e.target.value)}
                                                 className="w-full flex min-h-[80px] rounded-md border border-border/50 bg-muted/30 px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/50 disabled:cursor-not-allowed disabled:opacity-50"
                                                 placeholder="Tell us about your learning goals..."
                                             />
@@ -127,7 +281,10 @@ const Settings = () => {
                                                 <Label className="text-base">Email Notifications</Label>
                                                 <p className="text-xs text-muted-foreground">Receive updates about your progress via email.</p>
                                             </div>
-                                            <Switch defaultChecked />
+                                            <Switch 
+                                                checked={emailNotif} 
+                                                onCheckedChange={setEmailNotif} 
+                                            />
                                         </div>
                                         <Separator className="bg-border/30" />
                                         <div className="flex items-center justify-between">
@@ -135,7 +292,10 @@ const Settings = () => {
                                                 <Label className="text-base">Push Notifications</Label>
                                                 <p className="text-xs text-muted-foreground">Receive real-time alerts on your device.</p>
                                             </div>
-                                            <Switch defaultChecked />
+                                            <Switch 
+                                                checked={pushNotif} 
+                                                onCheckedChange={setPushNotif} 
+                                            />
                                         </div>
                                         <Separator className="bg-border/30" />
                                         <div className="flex items-center justify-between">
@@ -143,7 +303,10 @@ const Settings = () => {
                                                 <Label className="text-base">Monthly Progress Report</Label>
                                                 <p className="text-xs text-muted-foreground">A detailed summary of your learning journey.</p>
                                             </div>
-                                            <Switch defaultChecked />
+                                            <Switch 
+                                                checked={reportNotif} 
+                                                onCheckedChange={setReportNotif} 
+                                            />
                                         </div>
                                     </div>
                                 </motion.section>
@@ -160,7 +323,10 @@ const Settings = () => {
                                                 <Label className="text-base">Dark Mode</Label>
                                                 <p className="text-xs text-muted-foreground">Adjust the UI for low light conditions.</p>
                                             </div>
-                                            <Switch defaultChecked />
+                                            <Switch 
+                                                checked={theme === "dark"} 
+                                                onCheckedChange={(checked) => setTheme(checked ? "dark" : "light")} 
+                                            />
                                         </div>
                                         <Separator className="bg-border/30" />
                                         <div className="flex items-center justify-between">
@@ -168,7 +334,10 @@ const Settings = () => {
                                                 <Label className="text-base">Glassmorphism Effects</Label>
                                                 <p className="text-xs text-muted-foreground">Enable translucent background effects.</p>
                                             </div>
-                                            <Switch defaultChecked />
+                                            <Switch 
+                                                checked={glassmorphism} 
+                                                onCheckedChange={setGlassmorphism} 
+                                            />
                                         </div>
                                         <Separator className="bg-border/30" />
                                         <div className="flex items-center justify-between">
@@ -176,7 +345,10 @@ const Settings = () => {
                                                 <Label className="text-base">Reduced Motion</Label>
                                                 <p className="text-xs text-muted-foreground">Minimize the intensity of animations.</p>
                                             </div>
-                                            <Switch />
+                                            <Switch 
+                                                checked={reducedMotion} 
+                                                onCheckedChange={setReducedMotion} 
+                                            />
                                         </div>
                                     </div>
                                 </motion.section>
@@ -189,14 +361,25 @@ const Settings = () => {
                                     </h2>
                                     <div className="space-y-4">
                                         <div className="space-y-1.5">
-                                            <Label htmlFor="currentPassword">Current Password</Label>
-                                            <Input id="currentPassword" type="password" className="bg-muted/30 border-border/50 focus:border-primary/50" />
-                                        </div>
-                                        <div className="space-y-1.5">
                                             <Label htmlFor="newPassword">New Password</Label>
-                                            <Input id="newPassword" type="password" className="bg-muted/30 border-border/50 focus:border-primary/50" />
+                                            <Input 
+                                                id="newPassword" 
+                                                type="password" 
+                                                value={newPassword}
+                                                onChange={(e) => setNewPassword(e.target.value)}
+                                                className="bg-muted/30 border-border/50 focus:border-primary/50" 
+                                                placeholder="Enter new password"
+                                            />
                                         </div>
-                                        <Button size="sm" variant="outline" className="mt-2">Update Password</Button>
+                                        <Button 
+                                            size="sm" 
+                                            variant="outline" 
+                                            onClick={handleUpdatePassword}
+                                            disabled={isUpdatingPassword}
+                                            className="mt-2"
+                                        >
+                                            {isUpdatingPassword ? "Updating..." : "Update Password"}
+                                        </Button>
                                     </div>
                                     <Separator className="my-6 bg-border/30" />
                                     <div className="flex items-center justify-between">
@@ -204,7 +387,10 @@ const Settings = () => {
                                             <Label className="text-base">Two-Factor Authentication</Label>
                                             <p className="text-xs text-muted-foreground">Add an extra layer of security to your account.</p>
                                         </div>
-                                        <Switch />
+                                        <Switch 
+                                            checked={twoFactor} 
+                                            onCheckedChange={setTwoFactor} 
+                                        />
                                     </div>
                                 </motion.section>
                             )}
@@ -220,7 +406,8 @@ const Settings = () => {
                                             <select
                                                 id="language"
                                                 className="w-full flex h-10 rounded-md border border-border/50 bg-muted/30 px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/50"
-                                                defaultValue="en"
+                                                value={language}
+                                                onChange={(e) => setLanguage(e.target.value)}
                                             >
                                                 <option value="en">English (US)</option>
                                                 <option value="es">Español</option>
@@ -233,7 +420,8 @@ const Settings = () => {
                                             <select
                                                 id="timezone"
                                                 className="w-full flex h-10 rounded-md border border-border/50 bg-muted/30 px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/50"
-                                                defaultValue="pst"
+                                                value={timezone}
+                                                onChange={(e) => setTimezone(e.target.value)}
                                             >
                                                 <option value="pst">Pacific Standard Time (PST)</option>
                                                 <option value="est">Eastern Standard Time (EST)</option>
@@ -256,7 +444,12 @@ const Settings = () => {
                                             <h3 className="font-semibold text-sm">Delete Account</h3>
                                             <p className="text-xs text-muted-foreground">Wipe all progress and data.</p>
                                         </div>
-                                        <Button variant="destructive" size="sm" className="bg-destructive/10 text-destructive hover:bg-destructive hover:text-white border-destructive/20 transition-all font-bold">
+                                        <Button 
+                                            variant="destructive" 
+                                            size="sm" 
+                                            onClick={handleDeleteAccount}
+                                            className="bg-destructive/10 text-destructive hover:bg-destructive hover:text-white border-destructive/20 transition-all font-bold"
+                                        >
                                             <Trash2 className="h-4 w-4 mr-2" /> Delete
                                         </Button>
                                     </div>
@@ -265,7 +458,7 @@ const Settings = () => {
 
                             {/* Action Buttons */}
                             <motion.div variants={fadeUp} custom={5} className="flex items-center justify-end gap-3 pt-4">
-                                <Button variant="ghost" className="font-bold">Cancel</Button>
+                                <Button variant="ghost" onClick={() => navigate(-1)} className="font-bold">Cancel</Button>
                                 <Button
                                     onClick={handleSave}
                                     disabled={isSaving}

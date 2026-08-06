@@ -100,6 +100,16 @@ class ApiClient {
 
   // Auth is handled by Supabase directly
   // Token is synced via App.tsx using setToken
+  async getProfile(): Promise<any> {
+    return this.request("/auth/me");
+  }
+
+  async updateProfile(data: { first_name?: string; last_name?: string; bio?: string }): Promise<any> {
+    return this.request("/auth/me", {
+      method: "PUT",
+      body: JSON.stringify(data),
+    });
+  }
 
   // Roadmap
   async generateRoadmap(topic: string, file?: File | null): Promise<TaskResponse> {

@@ -65,7 +65,44 @@ async def get_me(current_user: User = Depends(get_current_user)):
     return {
         "id": current_user.id,
         "email": current_user.email,
-        "username": current_user.username
+        "username": current_user.username,
+        "first_name": current_user.first_name,
+        "last_name": current_user.last_name,
+        "bio": current_user.bio
+    }
+
+from pydantic import BaseModel
+from typing import Optional
+
+class ProfileUpdate(BaseModel):
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    bio: Optional[str] = None
+
+@router.put("/me")
+async def update_profile(
+    update_data: ProfileUpdate,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    if update_data.first_name is not None:
+        current_user.first_name = update_data.first_name
+    if update_data.last_name is not None:
+        current_user.last_name = update_data.last_name
+    if update_data.bio is not None:
+        current_user.bio = update_data.bio
+        
+    db.add(current_user)
+    await db.commit()
+    await db.refresh(current_user)
+    
+    return {
+        "id": current_user.id,
+        "email": current_user.email,
+        "username": current_user.username,
+        "first_name": current_user.first_name,
+        "last_name": current_user.last_name,
+        "bio": current_user.bio
     }
 
 @router.get("/config")
