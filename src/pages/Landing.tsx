@@ -1,11 +1,13 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   BookOpen, Brain, MessageSquare, Network, BarChart3,
-  Sparkles, ArrowRight, CheckCircle2, Zap, Star, Github
+  Sparkles, ArrowRight, CheckCircle2, Zap, Star, Github, X
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Hero3D } from "@/components/Hero3D";
+import { toast } from "sonner";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -31,6 +33,18 @@ const steps = [
 ];
 
 const Landing = () => {
+  const [showComingSoon, setShowComingSoon] = useState(false);
+  const [email, setEmail] = useState("");
+  const [notified, setNotified] = useState(false);
+
+  const handleNotify = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email) return;
+    toast.success("Thank you! We will notify you when Premium is live. 🚀");
+    setNotified(true);
+    setEmail("");
+  };
+
   return (
     <div className="min-h-screen bg-background">
       {/* Navbar */}
@@ -412,11 +426,12 @@ const Landing = () => {
                   ))}
                 </ul>
 
-                <Link to="/dashboard">
-                  <Button className="w-full h-12 text-base rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 border-0 text-white font-semibold shadow-lg shadow-purple-500/20">
-                    Upgrade Now <Star className="ml-2 h-4 w-4" />
-                  </Button>
-                </Link>
+                <Button 
+                  onClick={() => setShowComingSoon(true)}
+                  className="w-full h-12 text-base rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 border-0 text-white font-semibold shadow-lg shadow-purple-500/20"
+                >
+                  Upgrade Now <Star className="ml-2 h-4 w-4" />
+                </Button>
               </div>
             </motion.div>
           </div>
@@ -444,6 +459,71 @@ const Landing = () => {
           </div>
         </div>
       </footer>
+
+      <AnimatePresence>
+        {showComingSoon && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative w-full max-w-md overflow-hidden glass-card p-8 rounded-3xl border border-white/10 shadow-2xl bg-background/90"
+            >
+              {/* Glow effect */}
+              <div className="absolute -top-12 -right-12 w-40 h-40 bg-purple-500/20 rounded-full blur-2xl pointer-events-none" />
+              <div className="absolute -bottom-12 -left-12 w-40 h-40 bg-pink-500/20 rounded-full blur-2xl pointer-events-none" />
+
+              <button
+                onClick={() => setShowComingSoon(false)}
+                className="absolute top-4 right-4 text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <X className="h-5 w-5" />
+              </button>
+
+              <div className="text-center space-y-4">
+                <div className="inline-flex p-3 rounded-2xl bg-purple-500/10 text-purple-400 mb-2">
+                  <Sparkles className="h-8 w-8 animate-pulse" />
+                </div>
+                <h3 className="text-2xl font-black bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+                  Premium Coming Soon!
+                </h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  We are currently integrating Stripe payment infrastructure. Soon you'll be able to unlock unlimited topics, adaptive quizzes, mind maps, and full analytics.
+                </p>
+
+                {notified ? (
+                  <div className="p-4 rounded-2xl bg-green-500/10 border border-green-500/20 text-xs text-green-400 font-medium">
+                    🎉 You've been added to the early access list!
+                  </div>
+                ) : (
+                  <form onSubmit={handleNotify} className="space-y-3 pt-2">
+                    <input
+                      type="email"
+                      required
+                      placeholder="Enter your email for early access"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="w-full h-11 px-4 rounded-xl border border-white/10 bg-background/50 text-sm focus:outline-none focus:border-purple-500/50 transition-colors"
+                    />
+                    <Button type="submit" className="w-full h-11 bg-gradient-to-r from-purple-500 to-pink-500 border-0 text-white font-bold rounded-xl shadow-lg">
+                      Notify Me
+                    </Button>
+                  </form>
+                )}
+
+                <div className="pt-2">
+                  <button
+                    onClick={() => setShowComingSoon(false)}
+                    className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-4"
+                  >
+                    Go Back
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
