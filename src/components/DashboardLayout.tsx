@@ -41,7 +41,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <SidebarContent className="pt-4">
             <div className="px-4 pb-4 flex items-center gap-2">
               <div className="gradient-bg rounded-lg p-1 shrink-0">
-                <img src="/logo.png" alt="Logo" className="h-5 w-5 object-contain" />
+                <img src="/logo.png?v=3" alt="Logo" className="h-5 w-5 object-contain" />
               </div>
               <span className="font-bold text-sm group-data-[collapsible=icon]:hidden bg-gradient-to-r from-purple-400 via-pink-400 to-amber-400 bg-clip-text text-transparent">Xynova.ai</span>
             </div>
