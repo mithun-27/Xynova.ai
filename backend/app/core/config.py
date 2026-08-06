@@ -33,8 +33,8 @@ class Settings(BaseSettings):
     SUPABASE_ANON_KEY: str
 
     # Razorpay
-    RAZORPAY_KEY_ID: str
-    RAZORPAY_KEY_SECRET: str
+    RAZORPAY_KEY_ID: str = ""
+    RAZORPAY_KEY_SECRET: str = ""
 
     model_config = SettingsConfigDict(env_file=".env", case_sensitive=True, extra="ignore")
 
