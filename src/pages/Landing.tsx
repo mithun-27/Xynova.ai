@@ -116,9 +116,7 @@ const Landing = () => {
       <nav className="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-md border-b border-border">
         <div className="container mx-auto flex items-center justify-between h-16 px-4">
           <Link to="/" className="flex items-center gap-2">
-            <div className="gradient-bg rounded-lg p-1">
-              <img src="/logo.png?v=4" alt="Logo" className="h-6 w-6 object-contain" />
-            </div>
+            <img src="/logo.png?v=4" alt="Logo" className="h-7 w-7 object-contain shrink-0" />
             <span className="text-xl font-bold bg-gradient-to-r from-purple-400 via-pink-400 to-amber-400 bg-clip-text text-transparent">Xynova.ai</span>
           </Link>
           <div className="hidden md:flex items-center gap-8">

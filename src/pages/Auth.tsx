@@ -75,9 +75,7 @@ const Auth = () => {
       >
         <div className="text-center mb-10">
           <div className="inline-flex items-center gap-2 mb-4">
-            <div className="gradient-bg rounded-xl p-1.5">
-              <img src="/logo.png?v=4" alt="Logo" className="h-7 w-7 object-contain" />
-            </div>
+            <img src="/logo.png?v=4" alt="Logo" className="h-8 w-8 object-contain shrink-0" />
             <span className="text-2xl font-bold bg-gradient-to-r from-purple-400 via-pink-400 to-amber-400 bg-clip-text text-transparent">
               Xynova.ai
             </span>
