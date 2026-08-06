@@ -1,4 +1,7 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { api } from "@/lib/api";
+import { toast } from "sonner";
 import {
   LayoutDashboard, BookOpen, MessageSquare, HelpCircle,
   Network, BarChart3, Settings, Zap, LogOut,
@@ -32,6 +35,76 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const handleLogout = () => {
     localStorage.removeItem("token");
     navigate("/");
+  };
+
+  const [isPremium, setIsPremium] = useState(false);
+  const [loadingProfile, setLoadingProfile] = useState(true);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const data = await api.getProfile();
+        setIsPremium(data.is_premium || false);
+      } catch (err) {
+        console.error("Failed to load profile in layout", err);
+      } finally {
+        setLoadingProfile(false);
+      }
+    };
+    fetchUser();
+  }, []);
+
+  const triggerCheckout = async (amountPaise: number) => {
+    try {
+      const order = await api.createPaymentOrder(amountPaise);
+      
+      const options = {
+        key: import.meta.env.VITE_RAZORPAY_KEY_ID || "rzp_test_TMXzAdBCc0Phv0",
+        amount: order.amount,
+        currency: order.currency,
+        name: "Xynova AI Premium",
+        description: "Unlock unlimited learning roadmaps, adaptive quizzes, and chat.",
+        image: "/logo.png",
+        order_id: order.order_id,
+        handler: async (response: any) => {
+          try {
+            toast.info("Verifying transaction...");
+            const verifyResult = await api.verifyPayment({
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+            });
+            if (verifyResult.is_premium) {
+              toast.success("Successfully upgraded to Premium! Welcome aboard! 🚀");
+              setIsPremium(true);
+            }
+          } catch (err: any) {
+            toast.error(err.message || "Failed to verify payment signature");
+          }
+        },
+        prefill: {
+          name: "",
+          email: "",
+        },
+        theme: {
+          color: "#a855f7",
+        },
+        modal: {
+          ondismiss: function () {
+            toast.warning("Payment cancelled by user.");
+          }
+        }
+      };
+      
+      const rzp = new (window as any).Razorpay(options);
+      rzp.on('payment.failed', function (resp: any) {
+        toast.error(resp.error.description || "Payment failed");
+      });
+      rzp.open();
+    } catch (err: any) {
+      console.error("Checkout initiation failed", err);
+      toast.error(err.message || "Failed to start checkout. Please try again.");
+    }
   };
 
   return (
@@ -74,14 +147,28 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 </SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>
-            <div className="mt-auto px-3 pb-4">
-              <button 
-                onClick={handleLogout}
-                className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-              >
-                <LogOut className="h-4 w-4" />
-                <span>Log Out</span>
-              </button>
+            <div className="mt-auto space-y-2">
+              {!isPremium && !loadingProfile && (
+                <div className="px-3">
+                  <button 
+                    onClick={() => triggerCheckout(99900)}
+                    className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-sm font-bold bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg shadow-purple-500/20 transition-all active:scale-95 duration-150"
+                  >
+                    <Sparkles className="h-4 w-4 animate-pulse shrink-0 text-white" />
+                    <span className="truncate">Upgrade to Premium</span>
+                  </button>
+                </div>
+              )}
+              
+              <div className="px-3 pb-4">
+                <button 
+                  onClick={handleLogout}
+                  className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                >
+                  <LogOut className="h-4 w-4 shrink-0" />
+                  <span>Log Out</span>
+                </button>
+              </div>
             </div>
           </SidebarContent>
         </Sidebar>

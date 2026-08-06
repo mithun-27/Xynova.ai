@@ -111,6 +111,24 @@ class ApiClient {
     });
   }
 
+  async createPaymentOrder(amount: number): Promise<{ order_id: string; amount: number; currency: string }> {
+    return this.request("/payment/create-order", {
+      method: "POST",
+      body: JSON.stringify({ amount }),
+    });
+  }
+
+  async verifyPayment(data: {
+    razorpay_order_id: string;
+    razorpay_payment_id: string;
+    razorpay_signature: string;
+  }): Promise<{ status: string; message: string; is_premium: boolean }> {
+    return this.request("/payment/verify-payment", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  }
+
   // Roadmap
   async generateRoadmap(topic: string, file?: File | null): Promise<TaskResponse> {
     if (file) {

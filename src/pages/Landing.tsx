@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   BookOpen, Brain, MessageSquare, Network, BarChart3,
@@ -8,6 +8,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Hero3D } from "@/components/Hero3D";
 import { toast } from "sonner";
+import { api } from "@/lib/api";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -33,6 +34,7 @@ const steps = [
 ];
 
 const Landing = () => {
+  const navigate = useNavigate();
   const [showComingSoon, setShowComingSoon] = useState(false);
   const [email, setEmail] = useState("");
   const [notified, setNotified] = useState(false);
@@ -43,6 +45,69 @@ const Landing = () => {
     toast.success("Thank you! We will notify you when Premium is live. 🚀");
     setNotified(true);
     setEmail("");
+  };
+
+  const triggerCheckout = async (amountPaise: number) => {
+    try {
+      const order = await api.createPaymentOrder(amountPaise);
+      
+      const options = {
+        key: import.meta.env.VITE_RAZORPAY_KEY_ID || "rzp_test_TMXzAdBCc0Phv0",
+        amount: order.amount,
+        currency: order.currency,
+        name: "Xynova AI Premium",
+        description: "Unlock unlimited learning roadmaps, adaptive quizzes, and chat.",
+        image: "/logo.png",
+        order_id: order.order_id,
+        handler: async (response: any) => {
+          try {
+            toast.info("Verifying transaction...");
+            const verifyResult = await api.verifyPayment({
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+            });
+            if (verifyResult.is_premium) {
+              toast.success("Successfully upgraded to Premium! Welcome aboard! 🚀");
+              navigate("/dashboard");
+            }
+          } catch (err: any) {
+            toast.error(err.message || "Failed to verify payment signature");
+          }
+        },
+        prefill: {
+          name: "",
+          email: "",
+        },
+        theme: {
+          color: "#a855f7",
+        },
+        modal: {
+          ondismiss: function () {
+            toast.warning("Payment cancelled by user.");
+          }
+        }
+      };
+      
+      const rzp = new (window as any).Razorpay(options);
+      rzp.on('payment.failed', function (resp: any) {
+        toast.error(resp.error.description || "Payment failed");
+      });
+      rzp.open();
+    } catch (err: any) {
+      console.error("Checkout initiation failed", err);
+      toast.error(err.message || "Failed to start checkout. Please try again.");
+    }
+  };
+
+  const handleUpgradeClick = () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      toast.info("Please log in or sign up first to upgrade! 🚀");
+      navigate("/auth");
+      return;
+    }
+    triggerCheckout(99900);
   };
 
   return (
@@ -427,7 +492,7 @@ const Landing = () => {
                 </ul>
 
                 <Button 
-                  onClick={() => setShowComingSoon(true)}
+                  onClick={handleUpgradeClick}
                   className="w-full h-12 text-base rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 border-0 text-white font-semibold shadow-lg shadow-purple-500/20"
                 >
                   Upgrade Now <Star className="ml-2 h-4 w-4" />

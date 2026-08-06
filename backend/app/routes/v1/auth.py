@@ -68,7 +68,8 @@ async def get_me(current_user: User = Depends(get_current_user)):
         "username": current_user.username,
         "first_name": current_user.first_name,
         "last_name": current_user.last_name,
-        "bio": current_user.bio
+        "bio": current_user.bio,
+        "is_premium": current_user.is_premium
     }
 
 from pydantic import BaseModel
@@ -102,7 +103,8 @@ async def update_profile(
         "username": current_user.username,
         "first_name": current_user.first_name,
         "last_name": current_user.last_name,
-        "bio": current_user.bio
+        "bio": current_user.bio,
+        "is_premium": current_user.is_premium
     }
 
 @router.get("/config")

@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
-from app.routes.v1 import auth, roadmap, lesson, chat, quiz, progress, analytics, tasks
+from app.routes.v1 import auth, roadmap, lesson, chat, quiz, progress, analytics, tasks, payment
 
 from contextlib import asynccontextmanager
 from app.database.session import engine, Base
@@ -25,6 +25,7 @@ async def lifespan(app: FastAPI):
         await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS first_name VARCHAR;"))
         await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS last_name VARCHAR;"))
         await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS bio TEXT;"))
+        await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS is_premium BOOLEAN DEFAULT FALSE;"))
         await conn.execute(text("""
             CREATE TABLE IF NOT EXISTS quiz_attempts (
                 id SERIAL PRIMARY KEY,
@@ -61,6 +62,7 @@ app.add_middleware(
 
 # Include Routers
 app.include_router(auth.router, prefix=f"{settings.API_V1_STR}/auth", tags=["auth"])
+app.include_router(payment.router, prefix=f"{settings.API_V1_STR}/payment", tags=["payment"])
 app.include_router(roadmap.router, prefix=f"{settings.API_V1_STR}/roadmap", tags=["roadmap"])
 app.include_router(lesson.router, prefix=f"{settings.API_V1_STR}/lesson", tags=["lesson"])
 app.include_router(chat.router, prefix=f"{settings.API_V1_STR}/chat", tags=["chat"])
