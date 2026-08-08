@@ -85,7 +85,19 @@ const TopicsList = () => {
     <DashboardLayout>
       <div className="p-6 max-w-6xl mx-auto space-y-8">
         <AnimatePresence mode="wait">
-          {!selectedRoadmap ? (
+          {topicIdParam && !selectedRoadmap ? (
+             <motion.div 
+                 key="loading-curriculum" 
+                 initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                 className="h-[60vh] flex flex-col items-center justify-center"
+             >
+                 <div className="relative">
+                   <div className="absolute inset-0 bg-primary/20 blur-[50px] rounded-full animate-pulse" />
+                   <Loader2 className="h-10 w-10 animate-spin text-primary relative z-10" />
+                 </div>
+                 <p className="text-sm text-muted-foreground mt-4 font-medium italic">Opening your course...</p>
+             </motion.div>
+          ) : !selectedRoadmap ? (
             <motion.div
               key="library"
               initial={{ opacity: 0, y: 10 }}
