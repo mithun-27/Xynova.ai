@@ -9,6 +9,7 @@ import ReactMarkdown from "react-markdown";
 import { api, Lesson } from "@/lib/api";
 import { toast } from "sonner";
 import remarkGfm from "remark-gfm";
+import { AiLoader } from "@/components/AiLoader";
 
 const LessonReader = () => {
   const { lessonId } = useParams();
@@ -77,13 +78,8 @@ const LessonReader = () => {
   if (loading) {
     return (
       <DashboardLayout>
-        <div className="h-screen w-full flex flex-col items-center justify-center space-y-4">
-          <div className="relative">
-            <div className="absolute inset-0 bg-primary/20 blur-[60px] rounded-full animate-pulse" />
-            <Loader2 className="h-10 w-10 animate-spin text-primary relative z-10" />
-          </div>
-          <p className="text-sm text-muted-foreground font-medium">Generating your lesson...</p>
-          <p className="text-xs text-muted-foreground/50">Usually takes 10-30 seconds</p>
+        <div className="h-[calc(100vh-3.5rem)] w-full flex items-center justify-center">
+          <AiLoader title="Generating your lesson..." subtitle="Usually takes 10-30 seconds" />
         </div>
       </DashboardLayout>
     );
