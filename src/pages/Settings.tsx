@@ -163,16 +163,7 @@ const Settings = () => {
         { icon: Globe, label: "Language" },
     ];
 
-    if (isLoading) {
-        return (
-            <DashboardLayout>
-                <div className="h-[calc(100vh-3.5rem)] w-full flex flex-col items-center justify-center space-y-4">
-                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                    <p className="text-sm text-muted-foreground font-medium">Loading preferences...</p>
-                </div>
-            </DashboardLayout>
-        );
-    }
+    // Profile data is loaded in the background; page renders immediately
 
     return (
         <DashboardLayout>

@@ -64,23 +64,13 @@ const Dashboard = () => {
   const resolvedTheme = theme === 'system' ? systemTheme : theme;
   const isDark = resolvedTheme === 'dark';
 
-  if (loading) {
-    return (
-      <DashboardLayout>
-        <div className="h-full w-full flex items-center justify-center p-20">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        </div>
-      </DashboardLayout>
-    );
-  }
-
   const activityData = buildCalendarFromBackend(analytics?.calendar_data);
 
   const stats = [
-    { label: "Topics Learning", value: userTopics.length.toString(), icon: BookOpen, color: "bg-primary/10 text-primary" },
-    { label: "Lessons Completed", value: (analytics?.lessons_completed ?? 0).toString(), icon: TrendingUp, color: "bg-success/10 text-success" },
-    { label: "Study Streak", value: `${analytics?.study_streak ?? 0} days`, icon: Flame, color: "bg-warning/10 text-warning" },
-    { label: "Progress", value: `${Math.round(analytics?.progress_percentage ?? 0)}%`, icon: Trophy, color: "bg-accent/10 text-accent" },
+    { label: "Topics Learning", value: loading ? "–" : userTopics.length.toString(), icon: BookOpen, color: "bg-primary/10 text-primary" },
+    { label: "Lessons Completed", value: loading ? "–" : (analytics?.lessons_completed ?? 0).toString(), icon: TrendingUp, color: "bg-success/10 text-success" },
+    { label: "Study Streak", value: loading ? "–" : `${analytics?.study_streak ?? 0} days`, icon: Flame, color: "bg-warning/10 text-warning" },
+    { label: "Progress", value: loading ? "–" : `${Math.round(analytics?.progress_percentage ?? 0)}%`, icon: Trophy, color: "bg-accent/10 text-accent" },
   ];
 
   return (

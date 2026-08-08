@@ -130,15 +130,16 @@ const TopicsList = () => {
                 />
               </div>
 
-              {loading || fetchingRoadmap ? (
-                <div className="flex flex-col items-center justify-center py-20">
-                  <div className="relative">
-                    <div className="absolute inset-0 bg-primary/20 blur-[50px] rounded-full animate-pulse" />
-                    <Loader2 className="h-10 w-10 animate-spin text-primary relative z-10" />
-                  </div>
-                  <p className="text-sm text-muted-foreground mt-4 font-medium italic">
-                    {fetchingRoadmap ? "Opening your course..." : "Loading your library..."}
-                  </p>
+              {loading ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                  {[...Array(4)].map((_, i) => (
+                    <div key={i} className="glass-card p-6 border border-border/50 rounded-2xl animate-pulse">
+                      <div className="w-12 h-12 rounded-xl bg-muted mb-4" />
+                      <div className="h-5 w-3/4 bg-muted rounded mb-2" />
+                      <div className="h-4 w-1/2 bg-muted rounded mb-6" />
+                      <div className="h-1.5 w-full bg-muted rounded-full" />
+                    </div>
+                  ))}
                 </div>
               ) : filteredTopics.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
