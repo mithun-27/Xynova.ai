@@ -214,7 +214,7 @@ const Quiz = () => {
                 <Button onClick={restart} className="gradient-bg border-0 text-white font-bold rounded-xl shadow-lg">
                   <RotateCcw className="h-4 w-4 mr-2" /> Retake Quiz
                 </Button>
-                <Button variant="outline" onClick={() => navigate(-1)} className="rounded-xl border-border/60">
+                <Button variant="outline" onClick={() => navigate(`/lesson/${lessonId}`)} className="rounded-xl border-border/60">
                   Back to Lesson
                 </Button>
               </div>
@@ -265,7 +265,7 @@ const Quiz = () => {
                 )}
 
                 <div className="mt-6 flex justify-between items-center gap-3">
-                  <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="text-xs text-muted-foreground">
+                  <Button variant="ghost" size="sm" onClick={() => navigate(`/lesson/${lessonId}`)} className="text-xs text-muted-foreground">
                     Exit Quiz
                   </Button>
                   <Button onClick={handleNext} disabled={selected === null || savingScore} className="gradient-bg border-0 text-white font-bold rounded-xl shadow-lg">

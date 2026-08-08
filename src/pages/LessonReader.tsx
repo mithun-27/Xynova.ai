@@ -135,7 +135,12 @@ const LessonReader = () => {
           <div className="p-8 max-w-4xl mx-auto">
             {/* Header Actions */}
             <div className="flex items-center justify-between mb-8">
-                <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="text-muted-foreground hover:text-foreground">
+                <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => navigate(`/roadmap/${lesson.topic_id}`)} 
+                    className="text-muted-foreground hover:text-foreground"
+                >
                     <ArrowLeft className="h-4 w-4 mr-2" /> Back
                 </Button>
                 <div className="flex gap-2">
