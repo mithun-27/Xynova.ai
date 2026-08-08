@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { BookOpen, ChevronRight, Loader2, Trash2, Plus, Search, ArrowLeft, Network, Zap, Sparkles, MessageSquare, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import DashboardLayout from "@/components/DashboardLayout";
 import { toast } from "sonner";
 import { api, Topic, Roadmap } from "@/lib/api";
@@ -15,6 +15,8 @@ const TopicsList = () => {
   const [selectedRoadmap, setSelectedRoadmap] = useState<Roadmap | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const topicIdParam = searchParams.get("topicId");
 
   const fetchTopics = async () => {
     setLoading(true);
@@ -33,18 +35,30 @@ const TopicsList = () => {
     fetchTopics();
   }, []);
 
-  const handleTopicClick = async (topicId: number) => {
-    setFetchingRoadmap(true);
-    try {
-      const roadmapData = await api.getRoadmap(topicId);
-      // Attach the topic ID to the roadmap object for later navigation if needed
-      setSelectedRoadmap({ ...roadmapData, topic_id: topicId } as any);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    } catch (err) {
-        toast.error("Failed to load topic details");
-    } finally {
-        setFetchingRoadmap(false);
-    }
+  useEffect(() => {
+    const loadRoadmap = async () => {
+      if (topicIdParam) {
+        setFetchingRoadmap(true);
+        try {
+          const topicId = parseInt(topicIdParam);
+          const roadmapData = await api.getRoadmap(topicId);
+          setSelectedRoadmap({ ...roadmapData, topic_id: topicId } as any);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        } catch (err) {
+          toast.error("Failed to load topic details");
+          setSearchParams({});
+        } finally {
+          setFetchingRoadmap(false);
+        }
+      } else {
+        setSelectedRoadmap(null);
+      }
+    };
+    loadRoadmap();
+  }, [topicIdParam, setSearchParams]);
+
+  const handleTopicClick = (topicId: number) => {
+    setSearchParams({ topicId: topicId.toString() });
   };
 
   const handleDelete = async (e: React.MouseEvent, topicId: number) => {
@@ -193,7 +207,7 @@ const TopicsList = () => {
                     <Button 
                         variant="ghost" 
                         size="sm" 
-                        onClick={() => setSelectedRoadmap(null)}
+                        onClick={() => setSearchParams({})}
                         className="p-0 h-auto hover:bg-transparent text-primary font-bold flex items-center gap-1.5 mb-2 group"
                     >
                         <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
