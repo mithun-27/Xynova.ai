@@ -121,7 +121,7 @@ const Quiz = () => {
     return (
       <DashboardLayout>
         <div className="h-[calc(100vh-3.5rem)] w-full flex items-center justify-center">
-          <AiLoader title="Generating your lesson quiz..." subtitle="Analyzing details & compiling questions (takes 10-30 seconds)" />
+          <AiLoader title="Generating your lesson quiz..." />
         </div>
       </DashboardLayout>
     );
