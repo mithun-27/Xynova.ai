@@ -30,15 +30,13 @@ export const AiLoader = ({
 
   return (
     <div className="flex flex-col items-center justify-center p-4 w-full select-none">
-      {/* Lottie Animation Embed (Iframe player) */}
-      <div className="w-64 h-64 flex items-center justify-center mb-2 overflow-hidden pointer-events-none">
-        <iframe 
-          src="https://lottie.host/embed/aa3094a8-5590-41b7-b7bb-c6e6614e93e4/kEoF9fgeyl.lottie" 
-          className="w-[300px] h-[300px] border-0 scale-125 pointer-events-none"
-          style={{ border: "none" }}
-          title="AI Generation Animation"
-        />
-      </div>
+      {/* Lottie Animation Web Component (Transparent native rendering) */}
+      <div 
+        className="w-64 h-64 flex items-center justify-center mb-2 overflow-hidden pointer-events-none"
+        dangerouslySetInnerHTML={{
+          __html: `<dotlottie-wc src="https://lottie.host/aa3094a8-5590-41b7-b7bb-c6e6614e93e4/kEoF9fgeyl.lottie" style="width: 300px; height: 300px;" autoplay loop></dotlottie-wc>`
+        }}
+      />
 
       {/* Title */}
       <h2 className="text-2xl font-extrabold tracking-tight text-white mb-3 mt-[-30px]">{title}</h2>
