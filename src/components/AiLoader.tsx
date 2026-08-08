@@ -33,8 +33,13 @@ export const AiLoader = ({
     <div className="flex flex-col items-center justify-center p-4 min-h-[300px] w-full">
       {/* Premium Ai Generating Card with Animated Rotating Gradient Border */}
       <div className="relative w-full max-w-md p-[2px] rounded-3xl overflow-hidden bg-neutral-900/40 border border-neutral-800/40 shadow-2xl">
-        {/* Neon Rotating Gradient Border (spin-slow) */}
-        <div className="absolute inset-0 -z-10 bg-[conic-gradient(from_0deg,#3b82f6,#a855f7,#ec4899,#3b82f6)] opacity-75 blur-[1px] animate-spin-slow" />
+        {/* Neon Rotating Gradient Border (spin-slow) - Centered aspect-square to cover corners */}
+        <div 
+          style={{
+            backgroundImage: 'conic-gradient(from 0deg, #3b82f6, #a855f7, #ec4899, #3b82f6)'
+          }}
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[180%] aspect-square -z-10 opacity-80 blur-[2px] animate-spin-slow" 
+        />
         
         {/* Inner Dark Card Body */}
         <div className="relative z-10 w-full bg-neutral-950/95 rounded-[22px] p-8 flex flex-col items-center justify-center text-center overflow-hidden">

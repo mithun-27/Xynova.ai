@@ -20,8 +20,8 @@ class Settings(BaseSettings):
     
     # OpenAI / OpenRouter
     OPENROUTER_API_KEY: str
-    AI_MODEL: str = "nvidia/nemotron-3-super-120b-a12b:free"
-    AI_MODEL_FALLBACK: str = "google/gemma-3-27b-it:free"
+    AI_MODEL: str = "google/gemini-2.5-flash:free"
+    AI_MODEL_FALLBACK: str = "openrouter/free"
     
     # Security
     JWT_SECRET: str
